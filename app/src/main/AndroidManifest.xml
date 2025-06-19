@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-
-    <!-- IOIO ve Bluetooth bağlantısı için gerekli izinler -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Temel Bluetooth izinleri (Android 4+ için) -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    
+    <!-- Android 6+ için konum izinleri -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- Android 12+ için yeni Bluetooth izinleri -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" 
-        android:usesPermissionFlags="neverForLocation" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+        android:usesPermissionFlags="neverForLocation" 
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" 
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" 
+        android:maxSdkVersion="30" />
     
-    <!-- Bluetooth donanım gereksinimi -->
-    <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
+    <!-- IOIO için gerekli izinler -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- Bluetooth donanım gereksinimi (opsiyonel) -->
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
 
     <application
         android:allowBackup="true"
