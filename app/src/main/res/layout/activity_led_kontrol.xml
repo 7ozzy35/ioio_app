@@ -137,6 +137,138 @@
             android:textColor="#333333"
             android:background="#F5F5F5"
             android:padding="10dp"
+            android:layout_marginBottom="20dp" />
+
+        <!-- I²C Kontrolü -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="I²C Kontrolü"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:gravity="center"
+            android:background="#E8F5E8"
+            android:padding="10dp"
+            android:layout_marginBottom="15dp" />
+
+        <TextView
+            android:id="@+id/i2cDurumText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="I²C Pin Konfigürasyonu:\nSDA: Pin 4\nSCL: Pin 5\nHız: 100kHz (TWI0)"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:gravity="center"
+            android:layout_marginBottom="10dp" />
+
+        <EditText
+            android:id="@+id/i2cAdresInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="I²C Slave Adresi (hex: 0x48)"
+            android:inputType="text"
+            android:enabled="false"
+            android:layout_marginBottom="10dp"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/i2cDataInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Göndermek istediğiniz veri (hex: 0x00)"
+            android:inputType="text"
+            android:enabled="false"
+            android:layout_marginBottom="10dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/i2cSendButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="I²C Clock Toggle"
+            android:enabled="false"
+            android:layout_marginBottom="10dp"
+            android:textSize="14sp"
+            android:padding="15dp"
+            android:backgroundTint="#4CAF50" />
+
+        <Button
+            android:id="@+id/i2cTestButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="I²C Sürekli Test"
+            android:enabled="false"
+            android:layout_marginBottom="10dp"
+            android:textSize="14sp"
+            android:padding="15dp"
+            android:backgroundTint="#9C27B0" />
+
+        <TextView
+            android:id="@+id/i2cResponseText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="I²C Yanıtı: -"
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:background="#F5F5F5"
+            android:padding="10dp"
+            android:layout_marginBottom="10dp" />
+
+        <!-- ADC Kontrolü -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ADC (Analog Okuma)"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:gravity="center"
+            android:background="#FFE8E8"
+            android:padding="10dp"
+            android:layout_marginBottom="15dp" />
+
+        <TextView
+            android:id="@+id/adcDurumText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ADC Pin: 31 (0-3.3V)\n12-bit çözünürlük (0-4095)\nÖrnekleme: Manuel"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:gravity="center"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/adcOkuButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ADC Değeri Oku"
+            android:enabled="false"
+            android:layout_marginBottom="10dp"
+            android:textSize="14sp"
+            android:padding="15dp"
+            android:backgroundTint="#FF5722" />
+
+        <Button
+            android:id="@+id/adcSurekliButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ADC Sürekli Okuma"
+            android:enabled="false"
+            android:layout_marginBottom="10dp"
+            android:textSize="14sp"
+            android:padding="15dp"
+            android:backgroundTint="#FF9800" />
+
+        <TextView
+            android:id="@+id/adcSonucText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ADC Sonucu: -"
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:background="#F5F5F5"
+            android:padding="10dp"
             android:layout_marginBottom="10dp" />
 
     </LinearLayout>

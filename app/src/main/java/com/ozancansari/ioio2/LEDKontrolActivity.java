@@ -17,10 +17,12 @@ import android.widget.EditText;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import ioio.lib.api.AnalogInput;
 import ioio.lib.api.DigitalOutput;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.PwmOutput;
 import ioio.lib.api.SpiMaster;
+import ioio.lib.api.TwiMaster;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.android.AbstractIOIOActivity;
 
@@ -39,18 +41,32 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
     private Button pwmButton_;
     private Button spiSendButton_;
     private Button spiTestButton_;
+    private Button i2cSendButton_;
+    private Button i2cTestButton_;
+    private Button adcOkuButton_;
+    private Button adcSurekliButton_;
     private SeekBar pwmSeekBar_;
     private EditText spiDataInput_;
+    private EditText i2cAdresInput_;
+    private EditText i2cDataInput_;
     private TextView statusText_;
     private TextView pwmDurumText_;
     private TextView spiResponseText_;
+    private TextView i2cResponseText_;
+    private TextView adcSonucText_;
     
-    // LED, PWM ve SPI durumları
+    // LED, PWM, SPI, I²C ve ADC durumları
     private boolean statLedDurum_ = false;
     private boolean led1Durum_ = false;
     private boolean pwmAktif_ = false;
     private boolean spiTestAktif_ = false;
+    private boolean i2cTestAktif_ = false;
+    private boolean i2cClockAktif_ = false; // Yeni: I²C clock toggle
+    private boolean adcSurekliAktif_ = false;
     private float pwmDeger_ = 0.5f; // 0.0 - 1.0 arası
+    
+    // Thread referansı
+    private IOIOKontrolThread currentThread_;
     
     @Override
     protected boolean shouldWaitForConnect() {
@@ -66,13 +82,21 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         statusText_ = findViewById(R.id.statusText);
         pwmDurumText_ = findViewById(R.id.pwmDurumText);
         spiResponseText_ = findViewById(R.id.spiResponseText);
+        i2cResponseText_ = findViewById(R.id.i2cResponseText);
+        adcSonucText_ = findViewById(R.id.adcSonucText);
         statLedButton_ = findViewById(R.id.statLedButton);
         led1Button_ = findViewById(R.id.led1Button);
         pwmButton_ = findViewById(R.id.pwmButton);
         spiSendButton_ = findViewById(R.id.spiSendButton);
         spiTestButton_ = findViewById(R.id.spiTestButton);
+        i2cSendButton_ = findViewById(R.id.i2cSendButton);
+        i2cTestButton_ = findViewById(R.id.i2cTestButton);
+        adcOkuButton_ = findViewById(R.id.adcOkuButton);
+        adcSurekliButton_ = findViewById(R.id.adcSurekliButton);
         pwmSeekBar_ = findViewById(R.id.pwmSeekBar);
         spiDataInput_ = findViewById(R.id.spiDataInput);
+        i2cAdresInput_ = findViewById(R.id.i2cAdresInput);
+        i2cDataInput_ = findViewById(R.id.i2cDataInput);
         
         // SeekBar listener'ı
         pwmSeekBar_.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -166,7 +190,9 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
 
     @Override
     protected IOIOThread createIOIOThread() {
-        return new IOIOKontrolThread();
+        IOIOKontrolThread thread = new IOIOKontrolThread();
+        currentThread_ = thread;
+        return thread;
     }
 
     /**
@@ -177,7 +203,11 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         private DigitalOutput led1_;
         private PwmOutput pwmPin_;
         private SpiMaster spi_;
+        private TwiMaster twi_;
+        private AnalogInput adcPin_;
         private boolean spiHazir_ = false;
+        private boolean i2cHazir_ = false;
+        private boolean adcHazir_ = false;
 
         @Override
         protected void setup() throws ConnectionLostException {
@@ -204,6 +234,46 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                         @Override
                         public void run() {
                             Toast.makeText(getApplicationContext(), "SPI başlatılamadı: " + errorMsg, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+                
+                // I²C (TWI) Master'ı başlat
+                try {
+                    if (ioio_ != null) {
+                        // TWI0 modülü deneyelim - Pin 4/5 kullanır
+                        twi_ = ioio_.openTwiMaster(0, TwiMaster.Rate.RATE_100KHz, false);
+                        i2cHazir_ = true;
+                        Thread.sleep(200); // I²C başlatma sonrası bekleme
+                    }
+                } catch (Exception e) {
+                    i2cHazir_ = false;
+                    twi_ = null;
+                    final String errorMsg = e.getMessage();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "I²C başlatılamadı: " + errorMsg, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+                
+                // ADC (Analog Input) başlat
+                try {
+                    if (ioio_ != null) {
+                        // Pin 31'de ADC - 12-bit çözünürlük (0-4095)
+                        adcPin_ = ioio_.openAnalogInput(31);
+                        adcHazir_ = true;
+                        Thread.sleep(100); // ADC başlatma sonrası bekleme
+                    }
+                } catch (Exception e) {
+                    adcHazir_ = false;
+                    adcPin_ = null;
+                    final String errorMsg = e.getMessage();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "ADC başlatılamadı: " + errorMsg, Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
@@ -292,6 +362,126 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                             });
                         } else {
                             spiResponseText_.setText("SPI Hatası: Kullanılamıyor");
+                        }
+                        
+                        // I²C kontrolleri (sadece başarılı olursa)
+                        if (i2cHazir_) {
+                            i2cAdresInput_.setEnabled(true);
+                            i2cDataInput_.setEnabled(true);
+                            i2cSendButton_.setEnabled(true);
+                            i2cTestButton_.setEnabled(true);
+                            
+                            i2cSendButton_.setOnClickListener(new OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    try {
+                                        boolean yeniDurum = !i2cClockAktif_;
+                                        i2cSendButton_.setText("I²C Clock: " + (yeniDurum ? "AÇILIYOR..." : "KAPALI"));
+                                        
+                                        if (yeniDurum) {
+                                            if (twi_ != null && i2cHazir_) {
+                                                i2cClockAktif_ = true;
+                                                i2cResponseText_.setText("I²C Clock Aktif!\nPin 5 (SCL) sürekli clock\nMinimal START-STOP cycle'ları");
+                                                i2cSendButton_.setText("I²C Clock: AÇIK");
+                                            } else {
+                                                i2cClockAktif_ = false;
+                                                i2cSendButton_.setText("I²C Clock: KAPALI");
+                                                i2cResponseText_.setText("I²C Hatası: I²C hazır değil");
+                                            }
+                                        } else {
+                                            i2cClockAktif_ = false;
+                                            i2cResponseText_.setText("I²C Clock Durduruldu");
+                                            i2cSendButton_.setText("I²C Clock: KAPALI");
+                                        }
+                                    } catch (Exception e) {
+                                        i2cClockAktif_ = false;
+                                        i2cSendButton_.setText("I²C Clock: KAPALI");
+                                        i2cResponseText_.setText("I²C Buton Hatası: " + e.getMessage());
+                                    }
+                                }
+                            });
+                            
+                            i2cTestButton_.setOnClickListener(new OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    try {
+                                        boolean yeniDurum = !i2cTestAktif_;
+                                        i2cTestButton_.setText("I²C Test: " + (yeniDurum ? "AÇILIYOR..." : "KAPALI"));
+                                        
+                                        if (yeniDurum) {
+                                            if (twi_ != null && i2cHazir_) {
+                                                i2cTestAktif_ = true;
+                                                i2cResponseText_.setText("I²C Hızlı Test (No-ACK):\nPin 5 (SCL) - Hızlı Burst\nACK beklemeden transfer\nOsiloskop: 20µs/div, AC coupling");
+                                                i2cTestButton_.setText("I²C Test: AÇIK");
+                                            } else {
+                                                i2cTestAktif_ = false;
+                                                i2cTestButton_.setText("I²C Test: KAPALI");
+                                                i2cResponseText_.setText("I²C Hatası: I²C hazır değil veya null");
+                                            }
+                                        } else {
+                                            i2cTestAktif_ = false;
+                                            i2cTestButton_.setText("I²C Test: KAPALI");
+                                            i2cResponseText_.setText("I²C Sürekli Test Durduruldu");
+                                        }
+                                    } catch (Exception e) {
+                                        i2cTestAktif_ = false;
+                                        i2cTestButton_.setText("I²C Test: KAPALI");
+                                        i2cResponseText_.setText("I²C Buton Hatası: " + e.getMessage());
+                                    }
+                                }
+                            });
+                        } else {
+                            i2cResponseText_.setText("I²C Hatası: Kullanılamıyor");
+                        }
+                        
+                        // ADC kontrolleri (sadece başarılı olursa)
+                        if (adcHazir_) {
+                            adcOkuButton_.setEnabled(true);
+                            adcSurekliButton_.setEnabled(true);
+                            
+                            adcOkuButton_.setOnClickListener(new OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            readAdcOnce();
+                                        }
+                                    }).start();
+                                }
+                            });
+                            
+                            adcSurekliButton_.setOnClickListener(new OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    try {
+                                        boolean yeniDurum = !adcSurekliAktif_;
+                                        adcSurekliButton_.setText("ADC: " + (yeniDurum ? "AÇILIYOR..." : "KAPALI"));
+                                        
+                                        if (yeniDurum) {
+                                            if (adcPin_ != null && adcHazir_) {
+                                                adcSurekliAktif_ = true;
+                                                adcSonucText_.setText("ADC Sürekli Okuma Başladı\nPin 31'e analog gerilim uygulayın (0-3.3V)");
+                                                adcSurekliButton_.setText("ADC: AÇIK");
+                                            } else {
+                                                adcSurekliAktif_ = false;
+                                                adcSurekliButton_.setText("ADC: KAPALI");
+                                                adcSonucText_.setText("ADC Hatası: ADC hazır değil veya null");
+                                            }
+                                        } else {
+                                            adcSurekliAktif_ = false;
+                                            adcSonucText_.setText("ADC Sürekli Okuma Durduruldu");
+                                            adcSurekliButton_.setText("ADC: KAPALI");
+                                        }
+                                    } catch (Exception e) {
+                                        adcSurekliAktif_ = false;
+                                        adcSurekliButton_.setText("ADC: KAPALI");
+                                        adcSonucText_.setText("ADC Buton Hatası: " + e.getMessage());
+                                    }
+                                }
+                            });
+                        } else {
+                            adcSonucText_.setText("ADC Hatası: Kullanılamıyor");
                         }
                     }
                 });
@@ -402,61 +592,224 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                 pwmPin_.setDutyCycle(0);
             }
             
-            // SPI sürekli test modu
-            if (spiTestAktif_ && spiHazir_ && spi_ != null) {
+            // SPI sürekli test
+            if (spiTestAktif_ && spi_ != null && spiHazir_) {
                 try {
-                    // Daha kısa veri paketi ve daha az sıklık
-                    byte[] testData = {(byte)0xAA, (byte)0x55}; // 2 byte test pattern
-                    byte[] readData = new byte[2];
-                    spi_.writeRead(0, testData, 2, 2, readData, 2);
-                    Thread.sleep(100); // 10 Hz test hızı (daha yavaş)
-                } catch (ConnectionLostException e) {
-                    // IOIO bağlantısı kesildi, exception'ı yukarı fırlat
-                    throw e;
-                } catch (Exception e) {
-                    // SPI hatası durumunda test modunu kapat
-                    spiTestAktif_ = false;
-                    final String errorMsg = e.getMessage();
+                    // Test verisi: 0xAA, 0x55 (1010 1010, 0101 0101 binary)
+                    byte[] testData = {(byte) 0xAA, (byte) 0x55};
+                    byte[] response = new byte[2];
+                    spi_.writeRead(testData, testData.length, testData.length, response, response.length);
+                    
+                    final StringBuilder responseBuilder = new StringBuilder();
+                    responseBuilder.append("SPI Test - Gönderilen: ");
+                    for (byte b : testData) {
+                        responseBuilder.append(String.format("0x%02X ", b));
+                    }
+                    responseBuilder.append("\nAlınan: ");
+                    for (byte b : response) {
+                        responseBuilder.append(String.format("0x%02X ", b));
+                    }
+                    
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (spiTestButton_ != null) {
-                                spiTestButton_.setText("SPI Test: KAPALI");
-                            }
-                            if (spiResponseText_ != null) {
-                                spiResponseText_.setText("SPI Test Hatası: " + errorMsg);
-                            }
+                            spiResponseText_.setText(responseBuilder.toString());
                         }
                     });
-                    Thread.sleep(200); // Hata sonrası daha uzun bekleme
+                    
+                    Thread.sleep(100); // 10Hz test
+                } catch (Exception e) {
+                    spiTestAktif_ = false;
+                    final String errorMsg = "SPI Test Hatası: " + e.getMessage();
+                    
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                            spiTestButton_.setText("SPI Test: KAPALI");
+                            spiResponseText_.setText(errorMsg);
+                        }
+                    });
                 }
-            } else {
-                Thread.sleep(50); // Normal bekleme - daha az CPU kullanımı
             }
+            
+            // I²C clock toggle - minimal cycle'lar
+            if (i2cClockAktif_ && twi_ != null && i2cHazir_) {
+                try {
+                    // En minimal I²C transfer - sadece START-STOP
+                    // Boş veri ile sadece clock oluştur
+                    byte[] emptyData = {}; // Hiç veri yok
+                    byte[] readData = new byte[0];
+                    
+                    // Minimal adresle sadece START-ADDRESS-STOP cycle'ı
+                    // 0x00 adresi - genellikle boş/invalid
+                    TwiMaster.Result result = twi_.writeReadAsync(0x00, false, emptyData, 0, readData, 0);
+                    // Result'ı beklemiyoruz - sadece clock sinyali istiyoruz
+                    
+                    Thread.sleep(10); // 100Hz clock cycle
+                } catch (Exception e) {
+                    // Hataları sessizce geç, clock devam etsin
+                }
+            }
+            
+            // I²C sürekli test  
+            if (i2cTestAktif_ && twi_ != null && i2cHazir_) {
+                try {
+                    // Hızlı asenkron I²C - yanıt beklemiyor
+                    int[] testAddresses = {0x48, 0x50, 0x68}; // Daha az adres, daha hızlı
+                    byte[] testData = {0x00, (byte)0xFF, 0x55}; // 3 farklı pattern
+                    byte[] readData = new byte[0]; // Hiç okuma yapma
+                    
+                    StringBuilder resultText = new StringBuilder("I²C Hızlı Test (No-ACK):\n");
+                    
+                    // Async transferler - yanıt beklemeden devam et
+                    for (int addr : testAddresses) {
+                        for (byte data : testData) {
+                            try {
+                                byte[] singleData = {data};
+                                // Async kullan - bekleme yok
+                                TwiMaster.Result result = twi_.writeReadAsync(addr, false, singleData, 1, readData, 0);
+                                // Result'ı beklemiyoruz - sadece gönder ve devam et
+                                Thread.sleep(1); // Minimum aralar
+                            } catch (Exception e) {
+                                // Hataları sessizce geç
+                            }
+                        }
+                    }
+                    
+                    resultText.append("Pin 5 (SCL) - Hızlı Burst\n");
+                    resultText.append("ACK beklemeden transfer\n");
+                    resultText.append("Osiloskop: 20µs/div, AC coupling");
+                    
+                    final String finalText = resultText.toString();
+                    
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            i2cResponseText_.setText(finalText);
+                        }
+                    });
+                    
+                    Thread.sleep(50); // 20Hz test - çok hızlı
+                } catch (Exception e) {
+                    i2cTestAktif_ = false;
+                    final String errorMsg = "I²C Test Hatası: " + e.getMessage();
+                    
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            i2cTestButton_.setText("I²C Test: KAPALI");
+                            i2cResponseText_.setText(errorMsg);
+                        }
+                    });
+                }
+            }
+            
+            // ADC sürekli okuma
+            if (adcSurekliAktif_ && adcPin_ != null && adcHazir_) {
+                try {
+                    // ADC değerini oku (0.0 - 1.0 arası, 3.3V referans)
+                    float adcValue = adcPin_.read();
+                    
+                    // Değerleri hesapla
+                    int rawValue = (int)(adcValue * 4095); // 12-bit (0-4095)
+                    float voltage = adcValue * 3.3f; // Gerilim (0-3.3V)
+                    
+                    final String resultText = String.format("ADC Okuması:\nHam Değer: %d / 4095\nGerilim: %.3f V\nYüzde: %.1f%%", 
+                                                           rawValue, voltage, adcValue * 100);
+                    
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adcSonucText_.setText(resultText);
+                        }
+                    });
+                    
+                    Thread.sleep(200); // 5Hz okuma hızı
+                } catch (Exception e) {
+                    adcSurekliAktif_ = false;
+                    final String errorMsg = "ADC Okuma Hatası: " + e.getMessage();
+                    
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adcSurekliButton_.setText("ADC: KAPALI");
+                            adcSonucText_.setText(errorMsg);
+                        }
+                    });
+                }
+            }
+            
+            Thread.sleep(50); // Ana döngü hızı
         }
 
         @Override
         protected void disconnected() {
-            spiTestAktif_ = false; // Test modunu hemen durdur
+            // Test durumlarını kapat
+            spiTestAktif_ = false;
+            i2cTestAktif_ = false;
+            i2cClockAktif_ = false;
+            adcSurekliAktif_ = false;
+            
+            // Kaynakları temizle
+            try {
+                if (statLed_ != null) {
+                    statLed_.close();
+                    statLed_ = null;
+                }
+                if (led1_ != null) {
+                    led1_.close();
+                    led1_ = null;
+                }
+                if (pwmPin_ != null) {
+                    pwmPin_.close();
+                    pwmPin_ = null;
+                }
+                if (spi_ != null) {
+                    spi_.close();
+                    spi_ = null;
+                }
+                if (twi_ != null) {
+                    twi_.close();
+                    twi_ = null;
+                }
+                if (adcPin_ != null) {
+                    adcPin_.close();
+                    adcPin_ = null;
+                }
+            } catch (Exception e) {
+                // Kapatma hatalarını sessizce geç
+            }
+            
+            spiHazir_ = false;
+            i2cHazir_ = false;
+            adcHazir_ = false;
+            
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        statusText_.setText("IOIO bağlantısı kesildi!");
-                        if (statLedButton_ != null) statLedButton_.setEnabled(false);
-                        if (led1Button_ != null) led1Button_.setEnabled(false);
-                        if (pwmButton_ != null) pwmButton_.setEnabled(false);
-                        if (pwmSeekBar_ != null) pwmSeekBar_.setEnabled(false);
-                        if (spiSendButton_ != null) spiSendButton_.setEnabled(false);
-                        if (spiTestButton_ != null) {
-                            spiTestButton_.setEnabled(false);
-                            spiTestButton_.setText("SPI Test: KAPALI");
-                        }
-                        if (spiDataInput_ != null) spiDataInput_.setEnabled(false);
-                        if (spiResponseText_ != null) spiResponseText_.setText("IOIO bağlantısı kesildi");
-                    } catch (Exception e) {
-                        // UI güncelleme hatası durumunda sessizce devam et
-                    }
+                    // UI güncellemeleri
+                    statLedButton_.setText("Stat LED: KAPALI");
+                    led1Button_.setText("LED 1: KAPALI");
+                    pwmButton_.setText("PWM: KAPALI");
+                    spiTestButton_.setText("SPI Test: KAPALI");
+                    i2cTestButton_.setText("I²C Test: KAPALI");
+                    i2cSendButton_.setText("I²C Clock: KAPALI");
+                    adcSurekliButton_.setText("ADC: KAPALI");
+                    pwmSeekBar_.setEnabled(false);
+                    spiDataInput_.setEnabled(false);
+                    spiSendButton_.setEnabled(false);
+                    spiTestButton_.setEnabled(false);
+                    i2cAdresInput_.setEnabled(false);
+                    i2cDataInput_.setEnabled(false);
+                    i2cSendButton_.setEnabled(false);
+                    i2cTestButton_.setEnabled(false);
+                    adcOkuButton_.setEnabled(false);
+                    adcSurekliButton_.setEnabled(false);
+                    statusText_.setText("IOIO Bağlantısı Kesildi");
+                    pwmDurumText_.setText("PWM Durumu: Kullanılamıyor");
+                    spiResponseText_.setText("SPI Yanıtı: -");
+                    i2cResponseText_.setText("I²C Yanıtı: -");
+                    adcSonucText_.setText("ADC Sonucu: -");
                 }
             });
         }
@@ -467,6 +820,142 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                 @Override
                 public void run() {
                     Toast.makeText(getApplicationContext(), "IOIO versiyonu uyumsuz!", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+
+    // I²C veri gönderme metodu
+    private void sendI2cData() {
+        if (currentThread_ == null || currentThread_.twi_ == null || !currentThread_.i2cHazir_) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    i2cResponseText_.setText("I²C Hatası: I²C kullanılamıyor");
+                }
+            });
+            return;
+        }
+        
+        try {
+            String adresText = i2cAdresInput_.getText().toString().trim();
+            String dataText = i2cDataInput_.getText().toString().trim();
+            
+            // Varsayılan değerler
+            if (adresText.isEmpty()) {
+                adresText = "0x48";
+            }
+            if (dataText.isEmpty()) {
+                dataText = "0x00";
+            }
+            
+            // Hex string'i int/byte'a çevir
+            int slaveAddress;
+            if (adresText.startsWith("0x") || adresText.startsWith("0X")) {
+                slaveAddress = Integer.parseInt(adresText.substring(2), 16);
+            } else {
+                slaveAddress = Integer.parseInt(adresText, 16);
+            }
+            
+            byte data;
+            if (dataText.startsWith("0x") || dataText.startsWith("0X")) {
+                data = (byte) Integer.parseInt(dataText.substring(2), 16);
+            } else {
+                data = (byte) Integer.parseInt(dataText, 16);
+            }
+            
+            // I²C transfer'ı gerçekleştir - async mode
+            byte[] sendData = {data};
+            byte[] readData = new byte[0]; // Sadece yazma işlemi
+            
+            try {
+                // Async transfer - ACK beklemesini minimize et
+                TwiMaster.Result result = currentThread_.twi_.writeReadAsync(slaveAddress, false, sendData, sendData.length, readData, 0);
+                
+                // Kısa süre bekle ve result'ı kontrol et
+                Thread.sleep(10); // 10ms bekle
+                boolean success = false;
+                try {
+                    success = result.waitReady(); // Hızlıca kontrol et
+                } catch (Exception e) {
+                    // Timeout olursa success false kalır
+                }
+                
+                final String responseText = String.format("I²C Hızlı Transfer:\nAdres: 0x%02X\nVeri: 0x%02X\nDurum: %s\n%s", 
+                                                          slaveAddress, data, 
+                                                          success ? "BAŞARILI (ACK)" : "GÖNDERILDI (TIMEOUT/NACK)",
+                                                          "Clock sinyali Pin 5'te");
+                
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        i2cResponseText_.setText(responseText);
+                    }
+                });
+            } catch (Exception asyncEx) {
+                final String errorMsg = "I²C Async Hatası: " + asyncEx.getMessage();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        i2cResponseText_.setText(errorMsg);
+                    }
+                });
+            }
+            
+        } catch (NumberFormatException e) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    i2cResponseText_.setText("I²C Hatası: Geçersiz hex formatı (örn: 0x48)");
+                }
+            });
+        } catch (Exception e) {
+            final String errorMsg = e.getMessage();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    i2cResponseText_.setText("I²C Hatası: " + errorMsg);
+                }
+            });
+        }
+    }
+    
+    // ADC tek seferlik okuma metodu
+    private void readAdcOnce() {
+        if (currentThread_ == null || currentThread_.adcPin_ == null || !currentThread_.adcHazir_) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adcSonucText_.setText("ADC Hatası: ADC kullanılamıyor");
+                }
+            });
+            return;
+        }
+        
+        try {
+            // ADC değerini oku
+            float adcValue = currentThread_.adcPin_.read();
+            
+            // Değerleri hesapla
+            int rawValue = (int)(adcValue * 4095); // 12-bit (0-4095)
+            float voltage = adcValue * 3.3f; // Gerilim (0-3.3V)
+            
+            final String resultText = String.format("ADC Tek Okuma:\nHam Değer: %d / 4095\nGerilim: %.3f V\nYüzde: %.1f%%\nPin 31'den okundu", 
+                                                   rawValue, voltage, adcValue * 100);
+            
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adcSonucText_.setText(resultText);
+                }
+            });
+            
+        } catch (Exception e) {
+            final String errorMsg = "ADC Okuma Hatası: " + e.getMessage();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adcSonucText_.setText(errorMsg);
                 }
             });
         }

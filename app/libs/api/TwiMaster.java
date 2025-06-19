@@ -82,7 +82,7 @@ import com.edupass.hugin.infrastructure.ioio.api.exception.ConnectionLostExcepti
  */
 public interface TwiMaster extends Closeable {
 	enum Rate {
-		RATE_100KHz, RATE_400KHz, RATE_1MHz
+		RATE_100KHz, RATE_400KHz, RATE_1MHz, RATE_30KHZ,
 	}
 
 	/** An object that can be waited on for asynchronous calls. */
