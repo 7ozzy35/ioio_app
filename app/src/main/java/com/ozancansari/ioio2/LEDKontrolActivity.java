@@ -31,12 +31,19 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
     private static final int REQUEST_ENABLE_BT = 1002;
     
     private Button statLedButton_;
+    private Button led1Button_;
     private Button[] ledButtons_;
     private TextView statusText_;
     
     // LED durumları
     private boolean statLedDurum_ = false;
+    private boolean led1Durum_ = false; // Pin 1 için
     private boolean[] ledDurumlar_ = {false, false, false, false}; // Pin 2,3,4,5 için
+    
+    @Override
+    protected boolean shouldWaitForConnect() {
+        return true; // IOIO bağlantısı için bekle
+    }
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,6 +53,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         // UI elemanlarını bul
         statusText_ = findViewById(R.id.statusText);
         statLedButton_ = findViewById(R.id.statLedButton);
+        led1Button_ = findViewById(R.id.led1Button);
         
         ledButtons_ = new Button[4];
         ledButtons_[0] = findViewById(R.id.led2Button);
@@ -137,12 +145,16 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
      */
     private class LEDKontrolThread extends IOIOThread {
         private DigitalOutput statLed_;
+        private DigitalOutput led1_;
         private DigitalOutput[] leds_;
 
         @Override
         protected void setup() throws ConnectionLostException {
             // Stat LED'i aç (Pin 0)
             statLed_ = ioio_.openDigitalOutput(IOIO.LED_PIN, false);
+            
+            // Pin 1 LED'ini aç
+            led1_ = ioio_.openDigitalOutput(1, false);
             
             // Diğer LED'leri aç (Pin 2,3,4,5)
             leds_ = new DigitalOutput[4];
@@ -165,6 +177,15 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                         }
                     });
                     
+                    // Pin 1 LED butonu
+                    led1Button_.setEnabled(true);
+                    led1Button_.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            led1Durum_ = !led1Durum_;
+                        }
+                    });
+                    
                     for (int i = 0; i < 4; i++) {
                         final int pinIndex = i;
                         ledButtons_[i].setEnabled(true);
@@ -184,6 +205,9 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
             // Stat LED'i güncelle
             statLed_.write(statLedDurum_);
             
+            // Pin 1 LED'ini güncelle
+            led1_.write(led1Durum_);
+            
             // Diğer LED'leri güncelle
             for (int i = 0; i < 4; i++) {
                 leds_[i].write(ledDurumlar_[i]);
@@ -194,6 +218,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                 @Override
                 public void run() {
                     statLedButton_.setText("Stat LED: " + (statLedDurum_ ? "AÇIK" : "KAPALI"));
+                    led1Button_.setText("LED 1: " + (led1Durum_ ? "AÇIK" : "KAPALI"));
                     for (int i = 0; i < 4; i++) {
                         ledButtons_[i].setText("LED " + (i + 2) + ": " + (ledDurumlar_[i] ? "AÇIK" : "KAPALI"));
                     }
@@ -211,6 +236,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                 public void run() {
                     statusText_.setText("IOIO bağlantısı kesildi!");
                     statLedButton_.setEnabled(false);
+                    led1Button_.setEnabled(false);
                     for (int i = 0; i < 4; i++) {
                         ledButtons_[i].setEnabled(false);
                     }

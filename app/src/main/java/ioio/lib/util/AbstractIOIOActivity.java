@@ -43,7 +43,9 @@ public abstract class AbstractIOIOActivity extends Activity {
 	 */
 	protected abstract IOIOThread createIOIOThread();
 
-	/**
+    protected abstract boolean shouldWaitForConnect();
+
+    /**
 	 * An abstract class, which facilitates a thread dedicated for IOIO
 	 * communication.
 	 */
