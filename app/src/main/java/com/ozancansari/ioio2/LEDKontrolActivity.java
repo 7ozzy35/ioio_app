@@ -115,7 +115,15 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         
         // Bluetooth kontrolü
         initializeBluetooth();
+
+        Button mainMenuButton = findViewById(R.id.mainMenuButton);
+        mainMenuButton.setOnClickListener(v -> {
+            Intent intent = new Intent(LEDKontrolActivity.this, MainActivity.class);
+            startActivity(intent);
+        });
     }
+    
+
     
     private void initializeBluetooth() {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -125,8 +133,24 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
             return;
         }
         
-        // Android 6+ için izin kontrolü
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        // Android 12+ (API 31+) için yeni Bluetooth izinleri
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) 
+                    != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) 
+                    != PackageManager.PERMISSION_GRANTED) {
+                
+                ActivityCompat.requestPermissions(this, 
+                    new String[]{
+                        Manifest.permission.BLUETOOTH_CONNECT,
+                        Manifest.permission.BLUETOOTH_SCAN
+                    }, 
+                    REQUEST_BLUETOOTH_PERMISSIONS);
+                return;
+            }
+        }
+        // Android 6-11 için konum izinleri
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) 
                     != PackageManager.PERMISSION_GRANTED) {
                 
@@ -137,20 +161,25 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
             }
         }
         
-        // Bluetooth açık kontrolü
-        if (!bluetoothAdapter.isEnabled()) {
-            statusText_.setText("Bluetooth'u açınız...");
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        } else {
-            statusText_.setText("Bluetooth hazır, IOIO bağlanıyor...");
-            // Kısa gecikme ile bağlantıyı başlat
-            statusText_.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    statusText_.setText("IOIO bağlantısı bekleniyor...");
-                }
-            }, 1000);
+        // Bluetooth açık kontrolü - Android 12+ için ek kontrol
+        try {
+            if (!bluetoothAdapter.isEnabled()) {
+                statusText_.setText("Bluetooth'u açınız...");
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            } else {
+                statusText_.setText("Bluetooth hazır, IOIO bağlanıyor...");
+                // Kısa gecikme ile bağlantıyı başlat
+                statusText_.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        statusText_.setText("IOIO bağlantısı bekleniyor...");
+                    }
+                }, 1000);
+            }
+        } catch (SecurityException e) {
+            statusText_.setText("Bluetooth güvenlik hatası - İzinleri kontrol edin");
+            Toast.makeText(this, "Android 12+ için Bluetooth izinleri gerekli", Toast.LENGTH_LONG).show();
         }
     }
     
@@ -159,11 +188,24 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         
         if (requestCode == REQUEST_BLUETOOTH_PERMISSIONS) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            
+            if (allGranted) {
                 initializeBluetooth(); // Tekrar kontrol et
             } else {
-                statusText_.setText("Konum izni gerekli (Android 6+)!");
-                Toast.makeText(this, "Bluetooth tarama için konum izni gerekli", Toast.LENGTH_LONG).show();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    statusText_.setText("Bluetooth izinleri gerekli (Android 12+)!");
+                    Toast.makeText(this, "IOIO Bluetooth bağlantısı için Bluetooth izinleri gerekli", Toast.LENGTH_LONG).show();
+                } else {
+                    statusText_.setText("Konum izni gerekli (Android 6-11)!");
+                    Toast.makeText(this, "Bluetooth tarama için konum izni gerekli", Toast.LENGTH_LONG).show();
+                }
             }
         }
     }
@@ -711,6 +753,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     float adcValue = adcPin_.read();
                     
                     // Değerleri hesapla
+                    
                     int rawValue = (int)(adcValue * 4095); // 12-bit (0-4095)
                     float voltage = adcValue * 3.3f; // Gerilim (0-3.3V)
                     

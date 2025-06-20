@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Temel Bluetooth izinleri (Android 4+ için) -->
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <!-- Temel Bluetooth izinleri (Android 11 altı için) -->
+    <uses-permission android:name="android.permission.BLUETOOTH" 
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" 
+        android:maxSdkVersion="30" />
     
-    <!-- Android 6+ için konum izinleri -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Android 6-10 için konum izinleri -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
 
-    <!-- Android 12+ için yeni Bluetooth izinleri -->
+    <!-- Android 12+ (API 31+) için yeni Bluetooth izinleri -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" 
-        android:usesPermissionFlags="neverForLocation" 
-        android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" 
-        android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" 
-        android:maxSdkVersion="30" />
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     
     <!-- IOIO için gerekli izinler -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -30,6 +31,7 @@
         android:label="IOIO LED Kontrol"
         android:theme="@android:style/Theme.Holo.Light">
         
+
         <activity
             android:name="com.ozancansari.ioio2.LEDKontrolActivity"
             android:exported="true"
@@ -39,5 +41,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name="com.ozancansari.ioio2.MainActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        
     </application>
 </manifest> 

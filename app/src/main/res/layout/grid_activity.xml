@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="#F0F0F0"
+    android:padding="16dp">
+
+    <!-- Sol taraf - Grid Layout (85% genişlik) -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="85"
+        android:orientation="vertical">
+
+        <!-- Grid Layout -->
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:columnCount="7"
+            android:rowCount="5"
+            android:useDefaultMargins="true">
+
+            <!-- Grid Hücreleri - Satır 1 -->
+            <LinearLayout
+                android:id="@+id/gridCell1"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/gridCell2"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Grid Hücreleri - Satır 2 -->
+            <LinearLayout
+                android:id="@+id/gridCell3"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/gridCell4"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/gridCell5"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="5"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/gridCell6"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="6"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/gridCell7"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="7"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Satır 2 -->
+            <LinearLayout
+                android:id="@+id/gridCell8"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="8"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+           <LinearLayout
+                android:id="@+id/gridCell9"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="9"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+    android:id="@+id/gridCell10"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+           <LinearLayout
+    android:id="@+id/gridCell11"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="11"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+           <LinearLayout
+    android:id="@+id/gridCell12"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="12"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+            <LinearLayout
+    android:id="@+id/gridCell13"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="13"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/gridCell14"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="14"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Grid Hücreleri - Satır 3 -->
+            <LinearLayout
+                android:id="@+id/gridCell15"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="15"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Grid Hücreleri - Satır 4 -->
+            <LinearLayout
+                android:id="@+id/gridCell16"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="16"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/gridCell17"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="17"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Grid Hücreleri - Satır 5 -->
+            <LinearLayout
+                android:id="@+id/gridCell18"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="18"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Grid Hücreleri - Satır 6 -->
+            <LinearLayout
+                android:id="@+id/gridCell19"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="19"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Grid Hücreleri - Satır 7 -->
+            <LinearLayout
+                android:id="@+id/gridCell20"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="20"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Grid Hücreleri - Son Satır -->
+            <LinearLayout
+                android:id="@+id/gridCell21"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/bg_grid_normal"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="21"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Satır 4 -->
+            <LinearLayout
+    android:id="@+id/gridCell22"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="22"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+            <LinearLayout
+    android:id="@+id/gridCell23"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="23"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+            <LinearLayout
+    android:id="@+id/gridCell24"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="24"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+           <LinearLayout
+    android:id="@+id/gridCell25"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="25"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+            <LinearLayout
+    android:id="@+id/gridCell26"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="26"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+            <LinearLayout
+    android:id="@+id/gridCell27"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="27"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+            <LinearLayout
+    android:id="@+id/gridCell28"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="28"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+            <!-- Satır 5 -->
+            <LinearLayout
+    android:id="@+id/gridCell29"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="29"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+            <LinearLayout
+    android:id="@+id/gridCell30"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="30"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+            <LinearLayout
+    android:id="@+id/gridCell31"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="31"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+           <LinearLayout
+    android:id="@+id/gridCell32"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="32"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+            <LinearLayout
+    android:id="@+id/gridCell33"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="33"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+          <LinearLayout
+    android:id="@+id/gridCell34"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="34"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+           <LinearLayout
+    android:id="@+id/gridCell35"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:background="@drawable/bg_grid_normal"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="35"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</LinearLayout>
+
+        </GridLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Sağ taraf - LEL Değerleri Tablosu (15% genişlik) -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="15"
+        android:layout_marginStart="8dp"
+        android:background="#F0F0F0"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <!-- Tablo Başlığı -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/border"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="LEL Değerleri"
+            android:textColor="#000"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- Ana LEL Değeri -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/border"
+            android:orientation="horizontal"
+            android:padding="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text=" LEL"
+                android:textColor="#000"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvLelMain"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="0.0%"
+                android:textColor="#1976D2"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Boş alan -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- X Butonu -->
+        <Button
+            android:id="@+id/btnGeri"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="#444"
+            android:text="X"
+            android:textColor="#fff" />
+
+        <!-- LEL Değer 1 -->
+
+        <!-- LEL Alt Text -->
+
+        <!-- LEL Değer 2 -->
+
+        <!-- Üst Yüzde -->
+
+        <!-- Alt Yüzde -->
+
+    </LinearLayout>
+
+</LinearLayout>
