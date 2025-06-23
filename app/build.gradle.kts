@@ -13,7 +13,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -26,8 +26,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_1_7
+        targetCompatibility = JavaVersion.VERSION_1_7
     }
     
     lint {
@@ -42,10 +42,10 @@ dependencies {
     // IOIO kütüphanesi için local libs
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     
-    implementation("androidx.appcompat:appcompat:1.4.2")
-    implementation("androidx.core:core:1.6.0")
-    implementation("com.google.android.material:material:1.4.0")
+    // Android 4+ uyumlu support libraries
+    implementation("com.android.support:appcompat-v7:28.0.0")
+    implementation("com.android.support:support-v4:28.0.0")
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    androidTestImplementation("com.android.support.test:runner:1.0.2")
+    androidTestImplementation("com.android.support.test.espresso:espresso-core:3.0.2")
 }

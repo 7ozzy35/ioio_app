@@ -14,8 +14,8 @@ import android.widget.TextView;
 import android.widget.SeekBar;
 import android.widget.EditText;
 
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 
 import ioio.lib.api.AnalogInput;
 import ioio.lib.api.DigitalOutput;
@@ -488,10 +488,11 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
             } catch (ConnectionLostException e) {
                 throw e;
             } catch (Exception e) {
+                final String errorMessage = e.getMessage();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        statusText_.setText("IOIO bağlantı hatası: " + e.getMessage());
+                        statusText_.setText("IOIO bağlantı hatası: " + errorMessage);
                     }
                 });
             }

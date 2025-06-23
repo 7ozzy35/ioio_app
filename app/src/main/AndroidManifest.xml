@@ -30,14 +30,30 @@
         android:label="IOIO LED Kontrol"
         android:theme="@android:style/Theme.Holo.Light">
         
+        <!-- Ana Aktivite -->
         <activity
-            android:name="com.ozancansari.ioio2.LEDKontrolActivity"
+            android:name="com.ozancansari.ioio2.MainActivity"
             android:exported="true"
-            android:screenOrientation="portrait">
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.Ioio2.Main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- IOIO Kontrol Aktivitesi -->
+        <activity
+            android:name="com.ozancansari.ioio2.LEDKontrolActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Ioio2" />
+            
+        <!-- Grid Dedektör Aktivitesi -->
+        <activity
+            android:name="com.ozancansari.ioio2.GridActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.Ioio2" />
     </application>
 </manifest> 
