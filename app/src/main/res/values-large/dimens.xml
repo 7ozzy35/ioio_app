@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Margins -->
+    <dimen name="tiny_margin">4dp</dimen>
+    <dimen name="small_margin">8dp</dimen>
+    <dimen name="medium_margin">16dp</dimen>
+    <dimen name="large_margin">24dp</dimen>
+    <dimen name="bottom_margin">80dp</dimen>
+    
+    <!-- Paddings -->
+    <dimen name="panel_padding">16dp</dimen>
+    <dimen name="header_padding">16dp</dimen>
+    <dimen name="header_margin">12dp</dimen>
+    <dimen name="timer_padding">8dp</dimen>
+    <dimen name="percentage_padding">20dp</dimen>
+    <dimen name="small_percentage_padding">12dp</dimen>
+    <dimen name="sensor_panel_padding">8dp</dimen>
+    <dimen name="sensor_card_padding">16dp</dimen>
+    <dimen name="sensor_card_margin">4dp</dimen>
+    <dimen name="button_panel_padding">8dp</dimen>
+    <dimen name="button_margin">4dp</dimen>
+    
+    <!-- Icon Sizes -->
+    <dimen name="icon_size">36dp</dimen>
+    <dimen name="small_icon_size">24dp</dimen>
+    <dimen name="lel_icon_size">48dp</dimen>
+    <dimen name="fan_icon_size">40dp</dimen>
+    
+    <!-- Text Sizes -->
+    <dimen name="text_size_tiny">12sp</dimen>
+    <dimen name="text_size_small">16sp</dimen>
+    <dimen name="text_size_medium">18sp</dimen>
+    <dimen name="text_size_large">24sp</dimen>
+    <dimen name="sensor_text_size">18sp</dimen>
+    <dimen name="sensor_subtext_size">14sp</dimen>
+    <dimen name="sensor_value_size">12sp</dimen>
+    <dimen name="button_text_size">14sp</dimen>
+    
+    <!-- Button Heights -->
+    <dimen name="button_height">48dp</dimen>
+    
+    <!-- Grid Cell Sizes - Responsive -->
+    <dimen name="grid_cell_margin">2dp</dimen>
+    <dimen name="grid_text_size">12sp</dimen>
+</resources> 
