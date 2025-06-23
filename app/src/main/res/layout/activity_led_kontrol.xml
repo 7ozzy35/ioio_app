@@ -271,5 +271,19 @@
             android:padding="10dp"
             android:layout_marginBottom="10dp" />
 
+        <!-- Ana Menü Butonu -->
+        <Button
+            android:id="@+id/mainMenuButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ana Menüye Dön"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:textSize="16sp"
+            android:padding="15dp"
+            android:backgroundTint="#607D8B"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold" />
+
     </LinearLayout>
 </ScrollView> 
