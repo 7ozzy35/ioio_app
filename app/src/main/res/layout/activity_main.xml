@@ -13,590 +13,617 @@
         android:layout_weight="1"
         android:orientation="horizontal">
 
-        <!-- Sol Detay Paneli - Static Detail içeriği -->
+        <!-- Sol Detay Paneli -->
         <RelativeLayout
-        android:id="@+id/detailPanel"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="60"
-        android:background="#FFFFFF"
-        android:padding="@dimen/panel_padding">
+            android:id="@+id/detailPanel"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="60"
+            android:background="#FFFFFF"
+            android:padding="@dimen/panel_padding">
 
-        <!-- Header - Üst kısım -->
-        <LinearLayout
-            android:id="@+id/headerLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_margin="@dimen/header_margin"
-            android:background="@drawable/border"
-            android:orientation="horizontal"
-            android:padding="@dimen/header_padding">
-
-            <!-- IOIO Kontrol butonu -->
+            <!-- Header - Üst kısım -->
             <ImageButton
-                android:id="@+id/imageButton"
-                android:layout_width="@dimen/icon_size"
-                android:layout_height="@dimen/icon_size"
-                android:layout_gravity="center_vertical"
-                android:background="@android:color/transparent"
-                android:contentDescription="IOIO Kontrol"
-                android:scaleType="centerInside"
-                android:src="@android:drawable/ic_menu_preferences" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <!-- Tarih ve saat -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/ivCalendar"
-                    android:layout_width="@dimen/small_icon_size"
-                    android:layout_height="@dimen/small_icon_size"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="@dimen/small_margin"
-                    android:src="@android:drawable/ic_menu_today" />
-
-                <TextView
-                    android:id="@+id/tvDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="@dimen/medium_margin"
-                    android:text="14.01.2024"
-                    android:textColor="#1976D2"
-                    android:textSize="@dimen/text_size_small"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:id="@+id/ivClock"
-                    android:layout_width="@dimen/small_icon_size"
-                    android:layout_height="@dimen/small_icon_size"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="@dimen/small_margin"
-                    android:src="@android:drawable/ic_menu_recent_history" />
-
-                <TextView
-                    android:id="@+id/tvTime"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:text="16:51"
-                    android:textColor="#1976D2"
-                    android:textSize="@dimen/text_size_small"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <!-- Timer -->
-            <TextView
-                android:id="@+id/tvTimer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="@dimen/small_margin"
-                android:background="@drawable/border"
-                android:padding="@dimen/timer_padding"
-                android:text="00:00"
-                android:textColor="#FF6B35"
-                android:textSize="@dimen/text_size_medium"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <!-- Ana LEL Göstergesi - Responsive konumlandırma -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/headerLayout"
-            android:layout_centerInParent="true"
-            android:layout_marginTop="@dimen/large_margin"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <!-- Üst yüzde -->
-            <TextView
-                android:id="@+id/topPercentage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/border"
-                android:gravity="center"
-                android:padding="@dimen/percentage_padding"
-                android:text="20.0%"
-                android:textColor="#2E7D32"
-                android:textSize="@dimen/text_size_large"
-                android:textStyle="bold" />
-
-            <!-- Yukarı ok -->
-            <TextView
-                android:id="@+id/upArrow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:id="@+id/fanButton"
+                android:layout_width="@dimen/fan_icon_size"
+                android:layout_height="@dimen/fan_icon_size"
+                android:layout_below="@id/headerLayout"
+                android:layout_centerHorizontal="true"
                 android:layout_marginTop="@dimen/medium_margin"
-                android:gravity="center"
-                android:text="▲"
-                android:textColor="#4CAF50"
-                android:textSize="@dimen/text_size_medium" />
-
-            <!-- Aşağı ok -->
-            <TextView
-                android:id="@+id/downArrow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/small_margin"
-                android:gravity="center"
-                android:text="▼"
-                android:textColor="#FF5722"
-                android:textSize="@dimen/text_size_medium" />
-
-            <!-- Alt yüzde -->
-            <TextView
-                android:id="@+id/bottomPercentage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/medium_margin"
-                android:background="@drawable/border"
-                android:gravity="center"
-                android:padding="@dimen/small_percentage_padding"
-                android:text="3.0%"
-                android:textColor="#D84315"
-                android:textSize="@dimen/text_size_medium"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <!-- LEL Ana Değeri - Alt sol -->
-        <LinearLayout
-            android:id="@+id/lelContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginStart="@dimen/large_margin"
-            android:layout_marginBottom="@dimen/bottom_margin"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <ImageButton
-                android:id="@+id/btnLelIcon"
-                android:layout_width="@dimen/lel_icon_size"
-                android:layout_height="@dimen/lel_icon_size"
-                android:layout_marginEnd="@dimen/medium_margin"
-                android:background="@drawable/valve"
+                android:background="@drawable/fan"
                 android:clickable="true"
-                android:contentDescription="LEL İkonu"
+                android:contentDescription="Fan Kontrol"
+                android:focusable="true"
+                android:scaleType="centerInside" />
+
+            <!-- O2 Butonu - Fan butonunun solunda -->
+            <ImageButton
+                android:id="@+id/o2Button"
+                android:layout_width="@dimen/fan_icon_size"
+                android:layout_height="@dimen/fan_icon_size"
+                android:layout_below="@id/headerLayout"
+                android:layout_toLeftOf="@id/fanButton"
+                android:layout_marginTop="@dimen/medium_margin"
+                android:layout_marginEnd="@dimen/large_margin"
+                android:background="@drawable/o2"
+                android:clickable="true"
+                android:contentDescription="O2 Kontrol"
                 android:focusable="true"
                 android:scaleType="centerInside" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:id="@+id/headerLayout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_alignParentTop="true"
+                android:layout_margin="@dimen/header_margin"
+                android:background="@drawable/border"
+                android:orientation="horizontal"
+                android:padding="@dimen/header_padding">
 
-                <TextView
-                    android:id="@+id/lelMain"
+                <!-- IOIO Kontrol butonu -->
+                <ImageButton
+                    android:id="@+id/imageButton"
+                    android:layout_width="@dimen/icon_size"
+                    android:layout_height="@dimen/icon_size"
+                    android:layout_gravity="center_vertical"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="IOIO Kontrol"
+                    android:scaleType="centerInside"
+                    android:src="@android:drawable/ic_menu_preferences" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <!-- Tarih ve saat -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="LEL: 35.0%"
-                    android:textColor="#0277BD"
+                    android:layout_gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/ivCalendar"
+                        android:layout_width="@dimen/small_icon_size"
+                        android:layout_height="@dimen/small_icon_size"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginEnd="@dimen/small_margin"
+                        android:src="@android:drawable/ic_menu_today" />
+
+                    <TextView
+                        android:id="@+id/tvDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginEnd="@dimen/medium_margin"
+                        android:text="14.01.2024"
+                        android:textColor="#1976D2"
+                        android:textSize="@dimen/text_size_small"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/ivClock"
+                        android:layout_width="@dimen/small_icon_size"
+                        android:layout_height="@dimen/small_icon_size"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginEnd="@dimen/small_margin"
+                        android:src="@android:drawable/ic_menu_recent_history" />
+
+                    <TextView
+                        android:id="@+id/tvTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="16:51"
+                        android:textColor="#1976D2"
+                        android:textSize="@dimen/text_size_small"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <!-- Timer -->
+                <TextView
+                    android:id="@+id/tvTimer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="@dimen/small_margin"
+                    android:background="@drawable/border"
+                    android:padding="@dimen/timer_padding"
+                    android:text="00:00"
+                    android:textColor="#FF6B35"
                     android:textSize="@dimen/text_size_medium"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/lelSubtext"
+            </LinearLayout>
+
+            <!-- Fan Butonu - Üst ortada -->
+
+            <!-- LEL Ana Değeri - Sol tarafa absolut -->
+
+            <!-- Percentler - Fan butonunun tam altında (absolut konum) -->
+
+            <LinearLayout
+                android:id="@+id/lelContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/fanButton"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="31dp"
+                android:layout_marginTop="76dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btnLelIcon"
+                    android:layout_width="@dimen/lel_icon_size"
+                    android:layout_height="@dimen/lel_icon_size"
+                    android:layout_marginEnd="@dimen/medium_margin"
+                    android:background="@drawable/valve"
+                    android:clickable="true"
+                    android:contentDescription="LEL İkonu"
+                    android:focusable="true"
+                    android:scaleType="centerInside" />
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/tiny_margin"
-                    android:text="Güvenlik: Normal"
-                    android:textColor="#666"
-                    android:textSize="@dimen/text_size_tiny" />
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/lelMain"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LEL: 30.0%"
+                        android:textColor="#0277BD"
+                        android:textSize="@dimen/text_size_medium"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/lelSubtext"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/tiny_margin"
+                        android:text="Güvenlik: Normal"
+                        android:textColor="#666"
+                        android:textSize="@dimen/text_size_tiny" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/percentageContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/fanButton"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="@dimen/large_margin"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <!-- Üst yüzde -->
+                <TextView
+                    android:id="@+id/topPercentage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/border"
+                    android:gravity="center"
+                    android:padding="@dimen/percentage_padding"
+                    android:text="25.0%"
+                    android:textColor="#2E7D32"
+                    android:textSize="@dimen/text_size_large"
+                    android:textStyle="bold" />
+
+                <!-- Yukarı ok -->
+                <TextView
+                    android:id="@+id/upArrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/medium_margin"
+                    android:gravity="center"
+                    android:text="▲"
+                    android:textColor="#4CAF50"
+                    android:textSize="@dimen/text_size_medium" />
+
+                <!-- Aşağı ok -->
+                <TextView
+                    android:id="@+id/downArrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/small_margin"
+                    android:gravity="center"
+                    android:text="▼"
+                    android:textColor="#FF5722"
+                    android:textSize="@dimen/text_size_medium" />
+
+                <!-- Alt yüzde -->
+                <TextView
+                    android:id="@+id/bottomPercentage"
+                    android:layout_width="74dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/medium_margin"
+                    android:background="@drawable/border"
+                    android:gravity="center"
+                    android:padding="@dimen/small_percentage_padding"
+                    android:text="5.0%"
+                    android:textColor="#D84315"
+                    android:textSize="@dimen/text_size_medium"
+                    android:textStyle="bold" />
 
             </LinearLayout>
-        </LinearLayout>
-
-        <!-- Fan Butonu - Alt sağ -->
-        <ImageButton
-            android:id="@+id/fanButton"
-            android:layout_width="@dimen/fan_icon_size"
-            android:layout_height="@dimen/fan_icon_size"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginEnd="@dimen/large_margin"
-            android:layout_marginBottom="@dimen/bottom_margin"
-            android:background="@drawable/fan"
-            android:clickable="true"
-            android:contentDescription="Fan Kontrol"
-            android:focusable="true"
-            android:scaleType="centerInside" />
 
         </RelativeLayout>
 
-        <!-- Sağ Sensör Paneli -->
-        <ScrollView
+        <!-- Sağ Sensör Paneli - Kaydırmasız Tam Görünüm -->
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="40"
             android:background="#ECEFF1"
+            android:orientation="vertical"
             android:padding="@dimen/sensor_panel_padding">
 
+            <!-- Sıcaklık Paneli -->
             <LinearLayout
+                android:id="@+id/part1Layout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_margin="@dimen/sensor_card_margin"
+                android:background="@drawable/border"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="@dimen/sensor_card_padding">
 
-                <!-- Sıcaklık Paneli -->
                 <LinearLayout
-                    android:id="@+id/part1Layout"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/sensor_card_margin"
-                    android:background="@drawable/border"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    android:padding="@dimen/sensor_card_padding">
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvSicaklik"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Sıcaklık: 39°C"
-                                android:textColor="#C62828"
-                                android:textSize="@dimen/sensor_text_size"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tvTolerans"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/tiny_margin"
-                                android:text="Tolerans: ±5°C"
-                                android:textColor="#666"
-                                android:textSize="@dimen/sensor_subtext_size" />
-                        </LinearLayout>
-
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/tvSicaklik"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="end"
-                            android:orientation="vertical">
+                            android:text="Sıcaklık: 39°C"
+                            android:textColor="#C62828"
+                            android:textSize="@dimen/sensor_text_size"
+                            android:textStyle="bold" />
 
-                            <TextView
-                                android:id="@+id/tvMax"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="25°C"
-                                android:textColor="#FF5722"
-                                android:textSize="@dimen/sensor_value_size" />
-
-                            <TextView
-                                android:id="@+id/tvMin"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="15°C"
-                                android:textColor="#2196F3"
-                                android:textSize="@dimen/sensor_value_size" />
-                        </LinearLayout>
+                        <TextView
+                            android:id="@+id/tvTolerans"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/tiny_margin"
+                            android:text="Tolerans: ±5°C"
+                            android:textColor="#666"
+                            android:textSize="@dimen/sensor_subtext_size" />
                     </LinearLayout>
-                </LinearLayout>
-
-                <!-- Nem Paneli -->
-                <LinearLayout
-                    android:id="@+id/part2Layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/sensor_card_margin"
-                    android:background="@drawable/border"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    android:padding="@dimen/sensor_card_padding">
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:gravity="end"
+                        android:orientation="vertical">
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvNem"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Nem: 28%"
-                                android:textColor="#1976D2"
-                                android:textSize="@dimen/sensor_text_size"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tvTolerans1"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/tiny_margin"
-                                android:text="Tolerans: ±5%"
-                                android:textColor="#666"
-                                android:textSize="@dimen/sensor_subtext_size" />
-                        </LinearLayout>
-
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/tvMax"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="end"
-                            android:orientation="vertical">
+                            android:text="25°C"
+                            android:textColor="#FF5722"
+                            android:textSize="@dimen/sensor_value_size" />
 
-                            <TextView
-                                android:id="@+id/tvNemMax"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="25%"
-                                android:textColor="#FF5722"
-                                android:textSize="@dimen/sensor_value_size" />
-
-                            <TextView
-                                android:id="@+id/tvNemMin"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="15%"
-                                android:textColor="#2196F3"
-                                android:textSize="@dimen/sensor_value_size" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <!-- Basınç Paneli -->
-                <LinearLayout
-                    android:id="@+id/part3Layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/sensor_card_margin"
-                    android:background="@drawable/border"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    android:padding="@dimen/sensor_card_padding">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvBasinc"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Basınç: 118 kPa"
-                                android:textColor="#7B1FA2"
-                                android:textSize="@dimen/sensor_text_size"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tvTolerans2"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/tiny_margin"
-                                android:text="Tolerans: ±1 kPa"
-                                android:textColor="#666"
-                                android:textSize="@dimen/sensor_subtext_size" />
-                        </LinearLayout>
-
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/tvMin"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="end"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvBasincMax"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="109 kPa"
-                                android:textColor="#FF5722"
-                                android:textSize="@dimen/sensor_value_size" />
-
-                            <TextView
-                                android:id="@+id/tvBasincMin"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="86 kPa"
-                                android:textColor="#2196F3"
-                                android:textSize="@dimen/sensor_value_size" />
-                        </LinearLayout>
+                            android:text="15°C"
+                            android:textColor="#2196F3"
+                            android:textSize="@dimen/sensor_value_size" />
                     </LinearLayout>
                 </LinearLayout>
-
-                <!-- Gaz Hızı Paneli -->
-                <LinearLayout
-                    android:id="@+id/part4Layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/sensor_card_margin"
-                    android:background="@drawable/border"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    android:padding="@dimen/sensor_card_padding">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvGaz"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Gaz Hızı: 0.9"
-                                android:textColor="#F57C00"
-                                android:textSize="@dimen/sensor_text_size"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tvGazDetay"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/tiny_margin"
-                                android:text="Tolerans: 0.1"
-                                android:textColor="#666"
-                                android:textSize="@dimen/sensor_subtext_size" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="end"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvGazDurum"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0.5"
-                                android:textColor="#FF5722"
-                                android:textSize="@dimen/sensor_value_size" />
-
-                            <TextView
-                                android:id="@+id/tvGazMax"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0.1"
-                                android:textColor="#2196F3"
-                                android:textSize="@dimen/sensor_value_size" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <!-- Güç Kaynağı Paneli -->
-                <LinearLayout
-                    android:id="@+id/part5Layout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/sensor_card_margin"
-                    android:background="@drawable/border"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    android:padding="@dimen/sensor_card_padding">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvSistem"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Güç Kaynağı: 24V"
-                                android:textColor="#2E7D32"
-                                android:textSize="@dimen/sensor_text_size"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/tvBaglantiDurum"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/tiny_margin"
-                                android:text="Tolerans: 2V"
-                                android:textColor="#666"
-                                android:textSize="@dimen/sensor_subtext_size" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="end"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/tvSistemDurum"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="24V"
-                                android:textColor="#FF5722"
-                                android:textSize="@dimen/sensor_value_size" />
-
-                            <TextView
-                                android:id="@+id/tvSistemMin"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="12V"
-                                android:textColor="#2196F3"
-                                android:textSize="@dimen/sensor_value_size" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-
             </LinearLayout>
-        </ScrollView>
+
+            <!-- Nem Paneli -->
+            <LinearLayout
+                android:id="@+id/part2Layout"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_margin="@dimen/sensor_card_margin"
+                android:background="@drawable/border"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="@dimen/sensor_card_padding">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvNem"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nem: 28%"
+                            android:textColor="#1976D2"
+                            android:textSize="@dimen/sensor_text_size"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvTolerans1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/tiny_margin"
+                            android:text="Tolerans: ±5%"
+                            android:textColor="#666"
+                            android:textSize="@dimen/sensor_subtext_size" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvNemMax"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="25%"
+                            android:textColor="#FF5722"
+                            android:textSize="@dimen/sensor_value_size" />
+
+                        <TextView
+                            android:id="@+id/tvNemMin"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="15%"
+                            android:textColor="#2196F3"
+                            android:textSize="@dimen/sensor_value_size" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Basınç Paneli -->
+            <LinearLayout
+                android:id="@+id/part3Layout"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_margin="@dimen/sensor_card_margin"
+                android:background="@drawable/border"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="@dimen/sensor_card_padding">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvBasinc"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Basınç: 118 kPa"
+                            android:textColor="#7B1FA2"
+                            android:textSize="@dimen/sensor_text_size"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvTolerans2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/tiny_margin"
+                            android:text="Tolerans: ±1 kPa"
+                            android:textColor="#666"
+                            android:textSize="@dimen/sensor_subtext_size" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvBasincMax"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="109 kPa"
+                            android:textColor="#FF5722"
+                            android:textSize="@dimen/sensor_value_size" />
+
+                        <TextView
+                            android:id="@+id/tvBasincMin"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="86 kPa"
+                            android:textColor="#2196F3"
+                            android:textSize="@dimen/sensor_value_size" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Gaz Hızı Paneli -->
+            <LinearLayout
+                android:id="@+id/part4Layout"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_margin="@dimen/sensor_card_margin"
+                android:background="@drawable/border"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="@dimen/sensor_card_padding">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvGaz"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Gaz Hızı: 0.9"
+                            android:textColor="#F57C00"
+                            android:textSize="@dimen/sensor_text_size"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvGazDetay"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/tiny_margin"
+                            android:text="Tolerans: 0.1"
+                            android:textColor="#666"
+                            android:textSize="@dimen/sensor_subtext_size" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvGazDurum"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0.5"
+                            android:textColor="#FF5722"
+                            android:textSize="@dimen/sensor_value_size" />
+
+                        <TextView
+                            android:id="@+id/tvGazMax"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0.1"
+                            android:textColor="#2196F3"
+                            android:textSize="@dimen/sensor_value_size" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Güç Kaynağı Paneli -->
+            <LinearLayout
+                android:id="@+id/part5Layout"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_margin="@dimen/sensor_card_margin"
+                android:background="@drawable/border"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="@dimen/sensor_card_padding">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvSistem"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Güç Kaynağı: 24V"
+                            android:textColor="#2E7D32"
+                            android:textSize="@dimen/sensor_text_size"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvBaglantiDurum"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/tiny_margin"
+                            android:text="IOIO: Bağlantı kuruluyor..."
+                            android:textColor="#666"
+                            android:textSize="@dimen/sensor_subtext_size" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvGucKaynagi"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Bekleniyor..."
+                            android:textColor="#2E7D32"
+                            android:textSize="@dimen/sensor_value_size"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvSistemDurum"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="24V"
+                            android:textColor="#FF5722"
+                            android:textSize="@dimen/sensor_value_size" />
+
+                        <TextView
+                            android:id="@+id/tvSistemMin"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="12V"
+                            android:textColor="#2196F3"
+                            android:textSize="@dimen/sensor_value_size" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
 

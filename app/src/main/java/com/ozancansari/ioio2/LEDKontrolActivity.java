@@ -2,10 +2,16 @@ package com.ozancansari.ioio2;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.widget.Button;
 import android.widget.Toast;
 import android.view.View;
@@ -19,10 +25,10 @@ import android.support.v4.content.ContextCompat;
 
 import ioio.lib.api.AnalogInput;
 import ioio.lib.api.DigitalOutput;
+import ioio.lib.api.DigitalInput;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.PwmOutput;
 import ioio.lib.api.SpiMaster;
-import ioio.lib.api.TwiMaster;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.android.AbstractIOIOActivity;
 
@@ -35,6 +41,30 @@ import ioio.lib.util.android.AbstractIOIOActivity;
 public class LEDKontrolActivity extends AbstractIOIOActivity {
     private static final int REQUEST_BLUETOOTH_PERMISSIONS = 1001;
     private static final int REQUEST_ENABLE_BT = 1002;
+    
+    // Bluetooth yönetimi
+    private BluetoothAdapter bluetoothAdapter;
+    private SharedPreferences preferences;
+    private Handler reconnectHandler;
+    private int reconnectAttempts = 0;
+    private static final int MAX_RECONNECT_ATTEMPTS = 5;
+    private static final int RECONNECT_DELAY = 3000; // 3 saniye
+    
+    // BME280 Pin Kontrolleri
+    private Button pin9Button_;
+    private Button pin10Button_;
+    private Button pin11Button_;
+    private Button pin12Button_;
+    private Button pin13Button_;
+    private Button pin16Button_;
+    private Button pin15Button_;
+    private boolean pin9Durum_ = false;
+    private boolean pin10Durum_ = false;
+    private boolean pin11Durum_ = false;
+    private boolean pin12Durum_ = false;
+    private boolean pin13Durum_ = false;
+    private boolean pin16Durum_ = false;
+    private boolean pin15Durum_ = false;
     
     private Button statLedButton_;
     private Button led1Button_;
@@ -68,6 +98,24 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
     // Thread referansı
     private IOIOKontrolThread currentThread_;
     
+    // Bluetooth durum receiver'ı
+    private BroadcastReceiver bluetoothReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                handleBluetoothStateChange(state);
+            } else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                handleBluetoothDeviceConnected(device);
+            } else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                handleBluetoothDeviceDisconnected(device);
+            }
+        }
+    };
+    
     @Override
     protected boolean shouldWaitForConnect() {
         return true;
@@ -77,6 +125,10 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_led_kontrol);
+        
+        // SharedPreferences başlat
+        preferences = getSharedPreferences("IOIO_PREFS", MODE_PRIVATE);
+        reconnectHandler = new Handler();
         
         // UI elemanlarını bul
         statusText_ = findViewById(R.id.statusText);
@@ -98,6 +150,15 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         i2cAdresInput_ = findViewById(R.id.i2cAdresInput);
         i2cDataInput_ = findViewById(R.id.i2cDataInput);
         
+        // BME280 Pin Butonları
+        pin9Button_ = findViewById(R.id.pin9Button);
+        pin10Button_ = findViewById(R.id.pin10Button);
+        pin11Button_ = findViewById(R.id.pin11Button);
+        pin12Button_ = findViewById(R.id.pin12Button);
+        pin13Button_ = findViewById(R.id.pin13Button);
+        pin16Button_ = findViewById(R.id.pin16Button);
+        pin15Button_ = findViewById(R.id.pin15Button);
+        
         // SeekBar listener'ı
         pwmSeekBar_.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -117,21 +178,31 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         initializeBluetooth();
 
         Button mainMenuButton = findViewById(R.id.mainMenuButton);
-        mainMenuButton.setOnClickListener(v -> {
-            Intent intent = new Intent(LEDKontrolActivity.this, MainActivity.class);
-            startActivity(intent);
+        mainMenuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LEDKontrolActivity.this, MainActivity.class);
+                startActivity(intent);
+            }
         });
     }
     
 
     
     private void initializeBluetooth() {
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         
         if (bluetoothAdapter == null) {
             statusText_.setText("Bu cihazda Bluetooth desteklenmiyor!");
             return;
         }
+        
+        // Bluetooth receiver'ı kaydet
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        registerReceiver(bluetoothReceiver, filter);
         
         // Android 12+ (API 31+) için yeni Bluetooth izinleri
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -169,17 +240,94 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             } else {
                 statusText_.setText("Bluetooth hazır, IOIO bağlanıyor...");
-                // Kısa gecikme ile bağlantıyı başlat
-                statusText_.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        statusText_.setText("IOIO bağlantısı bekleniyor...");
-                    }
-                }, 1000);
+                // Otomatik bağlantı deneme
+                attemptAutoReconnect();
             }
         } catch (SecurityException e) {
             statusText_.setText("Bluetooth güvenlik hatası - İzinleri kontrol edin");
             Toast.makeText(this, "Android 12+ için Bluetooth izinleri gerekli", Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    /**
+     * Otomatik yeniden bağlantı denemesi
+     */
+    private void attemptAutoReconnect() {
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            reconnectAttempts++;
+            statusText_.setText(String.format("IOIO bağlantısı deneniyor... (%d/%d)", 
+                    reconnectAttempts, MAX_RECONNECT_ATTEMPTS));
+                    
+            reconnectHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        statusText_.setText("IOIO bağlantısı bekleniyor...");
+                    }
+            }, 2000);
+        } else {
+            statusText_.setText("IOIO bağlantısı kurulamadı - Manuel kontrol gerekli");
+            reconnectAttempts = 0; // Reset için
+        }
+    }
+    
+    /**
+     * Bluetooth durum değişikliği işleyicisi
+     */
+    private void handleBluetoothStateChange(int state) {
+        switch (state) {
+            case BluetoothAdapter.STATE_ON:
+                statusText_.setText("Bluetooth açık - IOIO bağlanıyor...");
+                reconnectAttempts = 0; // Reset counter
+                attemptAutoReconnect();
+                break;
+            case BluetoothAdapter.STATE_OFF:
+                statusText_.setText("Bluetooth kapalı");
+                preferences.edit().putBoolean("IOIO_CONNECTED", false).apply();
+                break;
+            case BluetoothAdapter.STATE_TURNING_ON:
+                statusText_.setText("Bluetooth açılıyor...");
+                break;
+            case BluetoothAdapter.STATE_TURNING_OFF:
+                statusText_.setText("Bluetooth kapanıyor...");
+                break;
+        }
+    }
+    
+    /**
+     * Bluetooth cihaz bağlantısı işleyicisi
+     */
+    private void handleBluetoothDeviceConnected(BluetoothDevice device) {
+        if (device != null && device.getName() != null) {
+            String deviceName = device.getName().toLowerCase();
+            if (deviceName.contains("ioio")) {
+                statusText_.setText("IOIO kartı bağlandı: " + device.getName());
+                preferences.edit().putBoolean("IOIO_CONNECTED", true).apply();
+                reconnectAttempts = 0; // Reset counter on successful connection
+                Toast.makeText(this, "IOIO kartı başarıyla bağlandı!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+    
+    /**
+     * Bluetooth cihaz bağlantısı kopması işleyicisi
+     */
+    private void handleBluetoothDeviceDisconnected(BluetoothDevice device) {
+        if (device != null && device.getName() != null) {
+            String deviceName = device.getName().toLowerCase();
+            if (deviceName.contains("ioio")) {
+                statusText_.setText("IOIO bağlantısı kesildi - Yeniden bağlanılıyor...");
+                preferences.edit().putBoolean("IOIO_CONNECTED", false).apply();
+                
+                // Kısa gecikme ile otomatik yeniden bağlantı
+                reconnectHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (bluetoothAdapter != null && bluetoothAdapter.isEnabled()) {
+                            attemptAutoReconnect();
+                        }
+                    }
+                }, RECONNECT_DELAY);
+            }
         }
     }
     
@@ -245,8 +393,24 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         private DigitalOutput led1_;
         private PwmOutput pwmPin_;
         private SpiMaster spi_;
-        private TwiMaster twi_;
         private AnalogInput adcPin_;
+        
+        // Manuel I2C Master GPIO pinleri
+        private DigitalOutput sclPin_;     // Pin 5 - SCL (Clock)
+        private DigitalOutput csbPin_;     // Pin 6 - CSB (Chip Select)
+        private DigitalOutput sdaOutPin_;  // Pin 4 - SDA (Data Output)
+        private DigitalInput sdaInPin_;    // Pin 4 - SDA (Data Input)
+        private boolean sdaIsOutput_ = true;
+        
+        // BME280 Pin Çıkışları
+        private DigitalOutput pin9_;
+        private DigitalOutput pin10_;
+        private DigitalOutput pin11_;
+        private DigitalOutput pin12_;
+        private DigitalOutput pin13_;
+        private DigitalOutput pin16_;
+        private DigitalOutput pin15_;
+        
         private boolean spiHazir_ = false;
         private boolean i2cHazir_ = false;
         private boolean adcHazir_ = false;
@@ -255,11 +419,20 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         protected void setup() throws ConnectionLostException {
             try {
                 // LED ve PWM çıkışlarını başlat
-            statLed_ = ioio_.openDigitalOutput(IOIO.LED_PIN, false);
-            led1_ = ioio_.openDigitalOutput(1, false);
-                pwmPin_ = ioio_.openPwmOutput(3, 1000); // Pin 3, 1kHz frekans
+                statLed_ = ioio_.openDigitalOutput(IOIO.LED_PIN, false);
+                led1_ = ioio_.openDigitalOutput(1, false);
+                pwmPin_ = ioio_.openPwmOutput(14, 1000); // Pin 14, 1kHz frekans
                 
+                // BME280 Pin Çıkışları
+                pin9_ = ioio_.openDigitalOutput(9, false);
+                pin10_ = ioio_.openDigitalOutput(10, false);
+                pin11_ = ioio_.openDigitalOutput(11, false);
+                pin12_ = ioio_.openDigitalOutput(12, false);
+                pin13_ = ioio_.openDigitalOutput(13, false);
+                pin16_ = ioio_.openDigitalOutput(16, false);
+                pin15_ = ioio_.openDigitalOutput(15, false);
                 
+
                 // SPI Master'ı başlat (hata olursa sadece uyarı ver)
                 try {
                     if (ioio_ != null) {
@@ -280,22 +453,29 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     });
                 }
                 
-                // I²C (TWI) Master'ı başlat
+                // Manuel I²C Master GPIO başlat
                 try {
                     if (ioio_ != null) {
-                        // TWI0 modülü deneyelim - Pin 4/5 kullanır
-                        twi_ = ioio_.openTwiMaster(0, TwiMaster.Rate.RATE_100KHz, false);
+                        // Pin 4, 5, 6 manuel I2C için
+                        sclPin_ = ioio_.openDigitalOutput(5, false);    // SCL (Clock)
+                        csbPin_ = ioio_.openDigitalOutput(6, false);    // CSB (başlangıçta LOW)
+                        sdaOutPin_ = ioio_.openDigitalOutput(4, false); // SDA Output
+                        sdaInPin_ = null; // Sonra açılacak
+                        sdaIsOutput_ = true;
+                        
+                        // I2C Master başlatma protokolü
+                        initManuelI2CMaster();
+                        
                         i2cHazir_ = true;
                         Thread.sleep(200); // I²C başlatma sonrası bekleme
                     }
                 } catch (Exception e) {
                     i2cHazir_ = false;
-                    twi_ = null;
                     final String errorMsg = e.getMessage();
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(getApplicationContext(), "I²C başlatılamadı: " + errorMsg, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Manuel I²C başlatılamadı: " + errorMsg, Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
@@ -320,26 +500,96 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     });
                 }
                 
+            // Bağlantı durumunu güncelle ve MainActivity'i bilgilendir
+            preferences.edit().putBoolean("IOIO_CONNECTED", true).apply();
+            reconnectAttempts = 0; // Başarılı bağlantı sonrası sayacı sıfırla
+                
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                        statusText_.setText("IOIO bağlandı! Kontroller aktif.");
+                        statusText_.setText("IOIO başarıyla bağlandı! Tüm kontroller aktif.");
+                        Toast.makeText(LEDKontrolActivity.this, "IOIO kartı başarıyla bağlandı!", Toast.LENGTH_SHORT).show();
                     
+                        // BME280 Pin Butonları
+                        pin9Button_.setEnabled(true);
+                        pin10Button_.setEnabled(true);
+                        pin11Button_.setEnabled(true);
+                        pin12Button_.setEnabled(true);
+                        pin13Button_.setEnabled(true);
+                        pin16Button_.setEnabled(true);
+                        pin15Button_.setEnabled(true);
+                        
+                        pin9Button_.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                pin9Durum_ = !pin9Durum_;
+                                pin9Button_.setText("Pin 9\n" + (pin9Durum_ ? "AÇIK" : "KAPALI"));
+                            }
+                        });
+                        
+                        pin10Button_.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                pin10Durum_ = !pin10Durum_;
+                                pin10Button_.setText("Pin 10\n" + (pin10Durum_ ? "AÇIK" : "KAPALI"));
+                            }
+                        });
+                        
+                        pin11Button_.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                pin11Durum_ = !pin11Durum_;
+                                pin11Button_.setText("Pin 11\n" + (pin11Durum_ ? "AÇIK" : "KAPALI"));
+                            }
+                        });
+                        
+                        pin12Button_.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                pin12Durum_ = !pin12Durum_;
+                                pin12Button_.setText("Pin 12\n" + (pin12Durum_ ? "AÇIK" : "KAPALI"));
+                            }
+                        });
+                        
+                        pin13Button_.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                pin13Durum_ = !pin13Durum_;
+                                pin13Button_.setText("Pin 13\n" + (pin13Durum_ ? "AÇIK" : "KAPALI"));
+                            }
+                        });
+                        
+                        pin16Button_.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                pin16Durum_ = !pin16Durum_;
+                                pin16Button_.setText("Pin 16\n" + (pin16Durum_ ? "AÇIK" : "KAPALI"));
+                            }
+                        });
+                        
+                        pin15Button_.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                pin15Durum_ = !pin15Durum_;
+                                pin15Button_.setText("Pin 15\n" + (pin15Durum_ ? "AÇIK" : "KAPALI"));
+                            }
+                        });
+                        
                         // LED kontrolleri
-                    statLedButton_.setEnabled(true);
-                    statLedButton_.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            statLedDurum_ = !statLedDurum_;
+                        statLedButton_.setEnabled(true);
+                        statLedButton_.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                statLedDurum_ = !statLedDurum_;
                                 statLedButton_.setText("Stat LED: " + (statLedDurum_ ? "AÇIK" : "KAPALI"));
-                        }
-                    });
-                    
-                    led1Button_.setEnabled(true);
-                    led1Button_.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            led1Durum_ = !led1Durum_;
+                            }
+                        });
+                        
+                        led1Button_.setEnabled(true);
+                        led1Button_.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                led1Durum_ = !led1Durum_;
                                 led1Button_.setText("LED 1: " + (led1Durum_ ? "AÇIK" : "KAPALI"));
                             }
                         });
@@ -420,24 +670,26 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                                         boolean yeniDurum = !i2cClockAktif_;
                                         i2cSendButton_.setText("I²C Clock: " + (yeniDurum ? "AÇILIYOR..." : "KAPALI"));
                                         
+                                        // Eğer işlem devam ediyorsa ignore et
+                                        if (i2cClockAktif_) {
+                                            i2cResponseText_.setText("BME280 I2C işlem devam ediyor, bekleyin...");
+                                            return;
+                                        }
+                                        
                                         if (yeniDurum) {
-                                            if (twi_ != null && i2cHazir_) {
+                                            if (i2cHazir_) {
                                                 i2cClockAktif_ = true;
-                                                i2cResponseText_.setText("I²C Clock Aktif!\nPin 5 (SCL) sürekli clock\nMinimal START-STOP cycle'ları");
-                                                i2cSendButton_.setText("I²C Clock: AÇIK");
+                                                i2cResponseText_.setText("BME280 I²C Transaction:\nWrite: 0xEC → 0xD0\nRead: 0xED ← data\nTek işlem başlıyor...");
+                                                i2cSendButton_.setText("I²C Send: İŞLEM...");
                                             } else {
                                                 i2cClockAktif_ = false;
-                                                i2cSendButton_.setText("I²C Clock: KAPALI");
-                                                i2cResponseText_.setText("I²C Hatası: I²C hazır değil");
+                                                i2cSendButton_.setText("I²C Send: KAPALI");
+                                                i2cResponseText_.setText("Manuel I²C Hatası: GPIO hazır değil");
                                             }
-                                        } else {
-                                            i2cClockAktif_ = false;
-                                            i2cResponseText_.setText("I²C Clock Durduruldu");
-                                            i2cSendButton_.setText("I²C Clock: KAPALI");
                                         }
                                     } catch (Exception e) {
                                         i2cClockAktif_ = false;
-                                        i2cSendButton_.setText("I²C Clock: KAPALI");
+                                        i2cSendButton_.setText("I²C Send: HATA");
                                         i2cResponseText_.setText("I²C Buton Hatası: " + e.getMessage());
                                     }
                                 }
@@ -450,20 +702,22 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                                         boolean yeniDurum = !i2cTestAktif_;
                                         i2cTestButton_.setText("I²C Test: " + (yeniDurum ? "AÇILIYOR..." : "KAPALI"));
                                         
+                                        // Eğer test devam ediyorsa ignore et
+                                        if (i2cTestAktif_) {
+                                            i2cResponseText_.setText("BME280 I2C test devam ediyor, bekleyin...");
+                                            return;
+                                        }
+                                        
                                         if (yeniDurum) {
-                                            if (twi_ != null && i2cHazir_) {
+                                            if (i2cHazir_) {
                                                 i2cTestAktif_ = true;
-                                                i2cResponseText_.setText("I²C Hızlı Test (No-ACK):\nPin 5 (SCL) - Hızlı Burst\nACK beklemeden transfer\nOsiloskop: 20µs/div, AC coupling");
-                                                i2cTestButton_.setText("I²C Test: AÇIK");
+                                                i2cResponseText_.setText("Manuel I²C Master Test:\nPin 5 (SCL) - Clock Master\nPin 4 (SDA) - Data Line\nTek işlem başlıyor...");
+                                                i2cTestButton_.setText("I²C Test: İŞLEM...");
                                             } else {
                                                 i2cTestAktif_ = false;
                                                 i2cTestButton_.setText("I²C Test: KAPALI");
-                                                i2cResponseText_.setText("I²C Hatası: I²C hazır değil veya null");
+                                                i2cResponseText_.setText("Manuel I²C Hatası: GPIO hazır değil");
                                             }
-                                        } else {
-                                            i2cTestAktif_ = false;
-                                            i2cTestButton_.setText("I²C Test: KAPALI");
-                                            i2cResponseText_.setText("I²C Sürekli Test Durduruldu");
                                         }
                                     } catch (Exception e) {
                                         i2cTestAktif_ = false;
@@ -621,12 +875,168 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                 });
             }
         }
+        
+        /**
+         * BME280 I2C Master başlatma protokolü
+         */
+        private void initManuelI2CMaster() throws ConnectionLostException, InterruptedException {
+            // BME280 SPI→I2C mode switching
+            csbPin_.write(false);    // SPI mode reset
+            Thread.sleep(50);
+            csbPin_.write(true);     // I2C mode enable
+            Thread.sleep(10);
+            
+            // I2C bus idle state
+            setSDAOutput();
+            sdaOutPin_.write(true);  // SDA = HIGH (idle)
+            sclPin_.write(true);     // SCL = HIGH (idle)
+            Thread.sleep(10);
+        }
+        
+        /**
+         * BME280 I2C Master - Tek işlem fonksiyonu
+         * Butona basıldığında BME280 ID register'ını okur
+         */
+        private void performSingleI2CTransaction() throws ConnectionLostException, InterruptedException {
+            final int BME280_SLAVE_ADDR = 0xEC;  // BME280 write address
+            final int BME280_ID_REG = 0xD0;      // Chip ID register
+            final int EXPECTED_ID = 0x60;        // BME280 chip ID
+            
+            try {
+                // BME280 dokümantasyon Figure 10: I2C read sequence
+                
+                // PHASE 1: Write register address
+                bme280Start();
+                boolean writeAck = bme280WriteByte(BME280_SLAVE_ADDR);
+                if (!writeAck) throw new Exception("BME280 slave no ACK");
+                
+                boolean regAck = bme280WriteByte(BME280_ID_REG);
+                if (!regAck) throw new Exception("Register write no ACK");
+                
+                // PHASE 2: Repeated start + read data
+                bme280Start(); // Repeated start
+                boolean readAck = bme280WriteByte(BME280_SLAVE_ADDR | 0x01); // 0xED
+                if (!readAck) throw new Exception("Read address no ACK");
+                
+                int chipId = bme280ReadByte(false); // NACK (last byte)
+                bme280Stop();
+                
+                // Result report
+                final boolean success = (chipId == EXPECTED_ID);
+                final String result = String.format(
+                    "BME280 I2C Test:\nWrite: 0x%02X → 0x%02X\nRead: 0x%02X → 0x%02X\nResult: %s", 
+                    BME280_SLAVE_ADDR, BME280_ID_REG,
+                    BME280_SLAVE_ADDR | 0x01, chipId,
+                    success ? "SUCCESS (BME280 detected!)" : "FAIL (wrong ID)"
+                );
+                
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        i2cResponseText_.setText(result);
+                    }
+                });
+                
+            } catch (Exception e) {
+                bme280Stop(); // Bus cleanup
+                final String error = "BME280 I2C Error: " + e.getMessage();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        i2cResponseText_.setText(error);
+                    }
+                });
+            }
+        }
+        
+        /**
+         * BME280 I2C Protocol Implementation
+         */
+        private void setSDAOutput() throws ConnectionLostException, InterruptedException {
+            if (!sdaIsOutput_) {
+                if (sdaInPin_ != null) { sdaInPin_.close(); sdaInPin_ = null; }
+                sdaOutPin_ = ioio_.openDigitalOutput(4, false);
+                sdaIsOutput_ = true;
+                Thread.sleep(1);
+            }
+        }
+        
+        private void setSDAInput() throws ConnectionLostException, InterruptedException {
+            if (sdaIsOutput_) {
+                if (sdaOutPin_ != null) { sdaOutPin_.close(); sdaOutPin_ = null; }
+                sdaInPin_ = ioio_.openDigitalInput(4, DigitalInput.Spec.Mode.PULL_UP);
+                sdaIsOutput_ = false;
+                Thread.sleep(1);
+            }
+        }
+        
+        private void bme280Start() throws ConnectionLostException, InterruptedException {
+            setSDAOutput();
+            sdaOutPin_.write(true);  sclPin_.write(true);  // Bus idle state
+            sdaOutPin_.write(false); /* START condition */  // SDA LOW while SCL HIGH
+            sclPin_.write(false);    // SCL LOW - ready for data
+        }
+        
+        private void bme280Stop() throws ConnectionLostException, InterruptedException {
+            setSDAOutput();
+            sdaOutPin_.write(false); sclPin_.write(false); // Setup for STOP
+            sclPin_.write(true);     // SCL HIGH first
+            sdaOutPin_.write(true);  // STOP: SDA LOW→HIGH while SCL HIGH
+        }
+        
+        private boolean bme280WriteByte(int data) throws ConnectionLostException, InterruptedException {
+            setSDAOutput();
+            
+            // 8 data bits - Maximum speed (Android GPIO limiti)
+            for (int i = 7; i >= 0; i--) {
+                sclPin_.write(false);  // SCL LOW
+                sdaOutPin_.write((data & (1 << i)) != 0);  // Set data bit
+                sclPin_.write(true);   // SCL HIGH - immediate
+            }
+            
+            // ACK bit - No delays for maximum speed
+            sclPin_.write(false);     // SCL LOW for ACK
+            setSDAInput();            // Switch to input
+            sclPin_.write(true);      // SCL HIGH - read ACK
+            boolean ack = !sdaInPin_.read();  // ACK = LOW
+            sclPin_.write(false);     // SCL LOW
+            return ack;
+        }
+        
+        private int bme280ReadByte(boolean sendAck) throws ConnectionLostException, InterruptedException {
+            setSDAInput();
+            int data = 0;
+            
+            // Read 8 data bits - Maximum speed
+            for (int i = 7; i >= 0; i--) {
+                sclPin_.write(false); // SCL LOW
+                sclPin_.write(true);  // SCL HIGH - immediate
+                if (sdaInPin_.read()) data |= (1 << i); // Read bit during HIGH
+            }
+            
+            // Send ACK/NACK - No delays for maximum speed  
+            sclPin_.write(false);     // SCL LOW
+            setSDAOutput();           // Switch to output
+            sdaOutPin_.write(!sendAck); // ACK=LOW, NACK=HIGH
+            sclPin_.write(true);      // Clock ACK/NACK
+            sclPin_.write(false);     // SCL LOW
+            return data;
+        }
 
         @Override
         protected void loop() throws ConnectionLostException, InterruptedException {
             // LED durumlarını güncelle
             statLed_.write(!statLedDurum_);
             led1_.write(led1Durum_);
+            
+            // BME280 Pin durumlarını güncelle
+            pin9_.write(pin9Durum_);
+            pin10_.write(pin10Durum_);
+            pin11_.write(pin11Durum_);
+            pin12_.write(pin12Durum_);
+            pin13_.write(pin13Durum_);
+            pin16_.write(pin16Durum_);
+            pin15_.write(pin15Durum_);
             
             // PWM durumunu güncelle
             if (pwmAktif_) {
@@ -675,72 +1085,57 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                 }
             }
             
-            // I²C clock toggle - minimal cycle'lar
-            if (i2cClockAktif_ && twi_ != null && i2cHazir_) {
+            // I2C Clock butonu: TEK işlem kontrolü
+            if (i2cClockAktif_ && i2cHazir_) {
                 try {
-                    // En minimal I²C transfer - sadece START-STOP
-                    // Boş veri ile sadece clock oluştur
-                    byte[] emptyData = {}; // Hiç veri yok
-                    byte[] readData = new byte[0];
+                    // BME280'e tek seferlik ID register oku
+                    performSingleI2CTransaction();
                     
-                    // Minimal adresle sadece START-ADDRESS-STOP cycle'ı
-                    // 0x00 adresi - genellikle boş/invalid
-                    TwiMaster.Result result = twi_.writeReadAsync(0x00, false, emptyData, 0, readData, 0);
-                    // Result'ı beklemiyoruz - sadece clock sinyali istiyoruz
-                    
-                    Thread.sleep(10); // 100Hz clock cycle
-                } catch (Exception e) {
-                    // Hataları sessizce geç, clock devam etsin
-                }
-            }
-            
-            // I²C sürekli test  
-            if (i2cTestAktif_ && twi_ != null && i2cHazir_) {
-                try {
-                    // Hızlı asenkron I²C - yanıt beklemiyor
-                    int[] testAddresses = {0x48, 0x50, 0x68}; // Daha az adres, daha hızlı
-                    byte[] testData = {0x00, (byte)0xFF, 0x55}; // 3 farklı pattern
-                    byte[] readData = new byte[0]; // Hiç okuma yapma
-                    
-                    StringBuilder resultText = new StringBuilder("I²C Hızlı Test (No-ACK):\n");
-                    
-                    // Async transferler - yanıt beklemeden devam et
-                    for (int addr : testAddresses) {
-                        for (byte data : testData) {
-                            try {
-                                byte[] singleData = {data};
-                                // Async kullan - bekleme yok
-                                TwiMaster.Result result = twi_.writeReadAsync(addr, false, singleData, 1, readData, 0);
-                                // Result'ı beklemiyoruz - sadece gönder ve devam et
-                                Thread.sleep(1); // Minimum aralar
-                            } catch (Exception e) {
-                                // Hataları sessizce geç
-                            }
-                        }
-                    }
-                    
-                    resultText.append("Pin 5 (SCL) - Hızlı Burst\n");
-                    resultText.append("ACK beklemeden transfer\n");
-                    resultText.append("Osiloskop: 20µs/div, AC coupling");
-                    
-                    final String finalText = resultText.toString();
+                    // İşlem tamamlandı - flag'i sıfırla
+                    i2cClockAktif_ = false;
                     
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            i2cResponseText_.setText(finalText);
+                            i2cSendButton_.setText("I²C Send: TAMAMLANDI");
                         }
                     });
                     
-                    Thread.sleep(50); // 20Hz test - çok hızlı
                 } catch (Exception e) {
+                    i2cClockAktif_ = false;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            i2cSendButton_.setText("I²C Send: HATA");
+                        }
+                    });
+                }
+            }
+            
+            // BME280 I2C test - Tek işlem moduna çevrildi
+            if (i2cTestAktif_ && i2cHazir_) {
+                try {
+                    // BME280 ID register tek okuma
+                    performSingleI2CTransaction();
+                    
+                    // Test tamamlandı - durdur
                     i2cTestAktif_ = false;
-                    final String errorMsg = "I²C Test Hatası: " + e.getMessage();
                     
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            i2cTestButton_.setText("I²C Test: KAPALI");
+                            i2cTestButton_.setText("I²C Test: TAMAMLANDI");
+                        }
+                    });
+                    
+                } catch (Exception e) {
+                    i2cTestAktif_ = false;
+                    final String errorMsg = "BME280 I2C Test Error: " + e.getMessage();
+                    
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            i2cTestButton_.setText("I²C Test: HATA");
                             i2cResponseText_.setText(errorMsg);
                         }
                     });
@@ -794,6 +1189,9 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
             i2cClockAktif_ = false;
             adcSurekliAktif_ = false;
             
+            // Bağlantı durumunu güncelle
+            preferences.edit().putBoolean("IOIO_CONNECTED", false).apply();
+            
             // Kaynakları temizle
             try {
                 if (statLed_ != null) {
@@ -808,13 +1206,58 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     pwmPin_.close();
                     pwmPin_ = null;
                 }
+                
+                // BME280 Pinlerini temizle
+                if (pin9_ != null) {
+                    pin9_.close();
+                    pin9_ = null;
+                }
+                if (pin10_ != null) {
+                    pin10_.close();
+                    pin10_ = null;
+                }
+                if (pin11_ != null) {
+                    pin11_.close();
+                    pin11_ = null;
+                }
+                if (pin12_ != null) {
+                    pin12_.close();
+                    pin12_ = null;
+                }
+                if (pin13_ != null) {
+                    pin13_.close();
+                    pin13_ = null;
+                }
+                if (pin16_ != null) {
+                    pin16_.close();
+                    pin16_ = null;
+                }
+                if (pin15_ != null) {
+                    pin15_.close();
+                    pin15_ = null;
+                }
+                
                 if (spi_ != null) {
                     spi_.close();
                     spi_ = null;
                 }
-                if (twi_ != null) {
-                    twi_.close();
-                    twi_ = null;
+                
+                // Manuel I2C GPIO pinleri kapat
+                if (sclPin_ != null) {
+                    sclPin_.close();
+                    sclPin_ = null;
+                }
+                if (csbPin_ != null) {
+                    csbPin_.close();
+                    csbPin_ = null;
+                }
+                if (sdaOutPin_ != null) {
+                    sdaOutPin_.close();
+                    sdaOutPin_ = null;
+                }
+                if (sdaInPin_ != null) {
+                    sdaInPin_.close();
+                    sdaInPin_ = null;
                 }
                 if (adcPin_ != null) {
                     adcPin_.close();
@@ -835,6 +1278,24 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     statLedButton_.setText("Stat LED: KAPALI");
                     led1Button_.setText("LED 1: KAPALI");
                     pwmButton_.setText("PWM: KAPALI");
+                    
+                    // BME280 Pin butonlarını sıfırla
+                    pin9Button_.setText("Pin 9\nKAPALI");
+                    pin10Button_.setText("Pin 10\nKAPALI");
+                    pin11Button_.setText("Pin 11\nKAPALI");
+                    pin12Button_.setText("Pin 12\nKAPALI");
+                    pin13Button_.setText("Pin 13\nKAPALI");
+                    pin16Button_.setText("Pin 16\nKAPALI");
+                    pin15Button_.setText("Pin 15\nKAPALI");
+                    
+                    pin9Button_.setEnabled(false);
+                    pin10Button_.setEnabled(false);
+                    pin11Button_.setEnabled(false);
+                    pin12Button_.setEnabled(false);
+                    pin13Button_.setEnabled(false);
+                    pin16Button_.setEnabled(false);
+                    pin15Button_.setEnabled(false);
+                    
                     spiTestButton_.setText("SPI Test: KAPALI");
                     i2cTestButton_.setText("I²C Test: KAPALI");
                     i2cSendButton_.setText("I²C Clock: KAPALI");
@@ -849,13 +1310,33 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     i2cTestButton_.setEnabled(false);
                     adcOkuButton_.setEnabled(false);
                     adcSurekliButton_.setEnabled(false);
-                    statusText_.setText("IOIO Bağlantısı Kesildi");
+                    statusText_.setText("IOIO Bağlantısı Kesildi - Yeniden bağlanılıyor...");
                     pwmDurumText_.setText("PWM Durumu: Kullanılamıyor");
                     spiResponseText_.setText("SPI Yanıtı: -");
                     i2cResponseText_.setText("I²C Yanıtı: -");
                     adcSonucText_.setText("ADC Sonucu: -");
+                    
+                    // Otomatik yeniden bağlantı denemesi
+                    Toast.makeText(LEDKontrolActivity.this, "IOIO bağlantısı kesildi - Yeniden bağlanılıyor...", 
+                            Toast.LENGTH_SHORT).show();
                 }
             });
+            
+            // Otomatik yeniden bağlantı için gecikme
+            reconnectHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (bluetoothAdapter != null && bluetoothAdapter.isEnabled()) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                statusText_.setText("Yeniden bağlantı deneniyor...");
+                            }
+                        });
+                        attemptAutoReconnect();
+                    }
+                }
+            }, RECONNECT_DELAY);
         }
 
         @Override
@@ -869,99 +1350,23 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         }
     }
 
-    // I²C veri gönderme metodu
+    // BME280 I2C tek işlem metodu - Her basışta yeni işlem
     private void sendI2cData() {
-        if (currentThread_ == null || currentThread_.twi_ == null || !currentThread_.i2cHazir_) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    i2cResponseText_.setText("I²C Hatası: I²C kullanılamıyor");
-                }
-            });
+        if (currentThread_ == null || !currentThread_.i2cHazir_) {
+            i2cResponseText_.setText("BME280 I2C Error: GPIO not ready");
             return;
         }
         
-        try {
-            String adresText = i2cAdresInput_.getText().toString().trim();
-            String dataText = i2cDataInput_.getText().toString().trim();
-            
-            // Varsayılan değerler
-            if (adresText.isEmpty()) {
-                adresText = "0x48";
-            }
-            if (dataText.isEmpty()) {
-                dataText = "0x00";
-            }
-            
-            // Hex string'i int/byte'a çevir
-            int slaveAddress;
-            if (adresText.startsWith("0x") || adresText.startsWith("0X")) {
-                slaveAddress = Integer.parseInt(adresText.substring(2), 16);
-            } else {
-                slaveAddress = Integer.parseInt(adresText, 16);
-            }
-            
-            byte data;
-            if (dataText.startsWith("0x") || dataText.startsWith("0X")) {
-                data = (byte) Integer.parseInt(dataText.substring(2), 16);
-            } else {
-                data = (byte) Integer.parseInt(dataText, 16);
-            }
-            
-            // I²C transfer'ı gerçekleştir - async mode
-            byte[] sendData = {data};
-            byte[] readData = new byte[0]; // Sadece yazma işlemi
-            
-            try {
-                // Async transfer - ACK beklemesini minimize et
-                TwiMaster.Result result = currentThread_.twi_.writeReadAsync(slaveAddress, false, sendData, sendData.length, readData, 0);
-                
-                // Kısa süre bekle ve result'ı kontrol et
-                Thread.sleep(10); // 10ms bekle
-                boolean success = false;
-                try {
-                    success = result.waitReady(); // Hızlıca kontrol et
-                } catch (Exception e) {
-                    // Timeout olursa success false kalır
-                }
-                
-                final String responseText = String.format("I²C Hızlı Transfer:\nAdres: 0x%02X\nVeri: 0x%02X\nDurum: %s\n%s", 
-                                                          slaveAddress, data, 
-                                                          success ? "BAŞARILI (ACK)" : "GÖNDERILDI (TIMEOUT/NACK)",
-                                                          "Clock sinyali Pin 5'te");
-                
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        i2cResponseText_.setText(responseText);
-                    }
-                });
-            } catch (Exception asyncEx) {
-                final String errorMsg = "I²C Async Hatası: " + asyncEx.getMessage();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        i2cResponseText_.setText(errorMsg);
-                    }
-                });
-            }
-            
-        } catch (NumberFormatException e) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    i2cResponseText_.setText("I²C Hatası: Geçersiz hex formatı (örn: 0x48)");
-                }
-            });
-        } catch (Exception e) {
-            final String errorMsg = e.getMessage();
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    i2cResponseText_.setText("I²C Hatası: " + errorMsg);
-                }
-            });
+        // Eğer işlem devam ediyorsa ignore et
+        if (i2cClockAktif_) {
+            i2cResponseText_.setText("BME280 I2C: İşlem devam ediyor, bekleyin...");
+            return;
         }
+        
+        // Yeni tek işlem başlat
+        i2cClockAktif_ = true;
+        i2cSendButton_.setText("I²C Send: İŞLEM...");
+        i2cResponseText_.setText("BME280 I2C transaction starting...");
     }
     
     // ADC tek seferlik okuma metodu
@@ -1002,6 +1407,25 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     adcSonucText_.setText(errorMsg);
                 }
             });
+        }
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        
+        // Bluetooth receiver'ı kaldır
+        if (bluetoothReceiver != null) {
+            try {
+                unregisterReceiver(bluetoothReceiver);
+            } catch (IllegalArgumentException e) {
+                // Receiver zaten kaldırılmış
+            }
+        }
+        
+        // Handler callbacks'leri temizle
+        if (reconnectHandler != null) {
+            reconnectHandler.removeCallbacksAndMessages(null);
         }
     }
 } 

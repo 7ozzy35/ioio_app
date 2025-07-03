@@ -1,3 +1,17 @@
 <resources>
-    <string name="app_name">ioio2</string>
+    <string name="app_name">IOIO BME-280 Sensör</string>
+    
+    <!-- BME-280 Sensör Metinleri -->
+    <string name="bme280_connected">BME-280 Bağlandı</string>
+    <string name="bme280_simulation">BME-280 Simülasyon Modu</string>
+    <string name="bme280_error">BME-280 Bağlantı Hatası</string>
+    <string name="temperature">Sıcaklık</string>
+    <string name="humidity">Nem</string>
+    <string name="pressure">Basınç</string>
+    <string name="temperature_unit">°C</string>
+    <string name="humidity_unit">%</string>
+    <string name="pressure_unit">hPa</string>
+    <string name="sensor_normal">Normal</string>
+    <string name="sensor_high">Yüksek</string>
+    <string name="sensor_low">Düşük</string>
 </resources>

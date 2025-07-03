@@ -11,12 +11,9 @@
 
     <!-- Android 12+ için yeni Bluetooth izinleri -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" 
-        android:usesPermissionFlags="neverForLocation" 
-        android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" 
-        android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" 
-        android:maxSdkVersion="30" />
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     
     <!-- IOIO için gerekli izinler -->
     <uses-permission android:name="android.permission.INTERNET" />

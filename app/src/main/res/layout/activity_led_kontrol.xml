@@ -271,7 +271,109 @@
             android:padding="10dp"
             android:layout_marginBottom="10dp" />
 
-        <!-- Ana Menü Butonu -->
+        <!-- BME280 Pin Kontrolleri -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="BME280 Pin Kontrolleri"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:gravity="center"
+            android:background="#E1F5FE"
+            android:padding="10dp"
+            android:layout_marginBottom="15dp" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="5dp">
+
+                <Button
+                    android:id="@+id/pin9Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pin 9\nKAPALI"
+                    android:enabled="false"
+                    android:layout_margin="3dp"
+                    android:textSize="12sp"
+                    android:padding="10dp"
+                    android:backgroundTint="#2196F3" />
+
+                <Button
+                    android:id="@+id/pin10Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pin 10\nKAPALI"
+                    android:enabled="false"
+                    android:layout_margin="3dp"
+                    android:textSize="12sp"
+                    android:padding="10dp"
+                    android:backgroundTint="#4CAF50" />
+
+                <Button
+                    android:id="@+id/pin11Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pin 11\nKAPALI"
+                    android:enabled="false"
+                    android:layout_margin="3dp"
+                    android:textSize="12sp"
+                    android:padding="10dp"
+                    android:backgroundTint="#FF9800" />
+
+                <Button
+                    android:id="@+id/pin12Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pin 12\nKAPALI"
+                    android:enabled="false"
+                    android:layout_margin="3dp"
+                    android:textSize="12sp"
+                    android:padding="10dp"
+                    android:backgroundTint="#E91E63" />
+
+                <Button
+                    android:id="@+id/pin13Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pin 13\nKAPALI"
+                    android:enabled="false"
+                    android:layout_margin="3dp"
+                    android:textSize="12sp"
+                    android:padding="10dp"
+                    android:backgroundTint="#9C27B0" />
+
+                <Button
+                    android:id="@+id/pin16Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pin 16\nKAPALI"
+                    android:enabled="false"
+                    android:layout_margin="3dp"
+                    android:textSize="12sp"
+                    android:padding="10dp"
+                    android:backgroundTint="#795548" />
+
+                <Button
+                    android:id="@+id/pin15Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pin 15\nKAPALI"
+                    android:enabled="false"
+                    android:layout_margin="3dp"
+                    android:textSize="12sp"
+                    android:padding="10dp"
+                    android:backgroundTint="#607D8B" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
         <Button
             android:id="@+id/mainMenuButton"
             android:layout_width="match_parent"
