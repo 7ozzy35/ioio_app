@@ -63,7 +63,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
     private boolean pin9Durum_ = false;
     private boolean pin10Durum_ = false;
     private boolean pin11Durum_ = false;
-    private boolean pin12Durum_ = false;
+    private boolean pin12Durum_ = true;   // Pin 12 başlangıçta AÇIK
     private boolean pin13Durum_ = false;
     private boolean pin39Durum_ = false;
     private boolean pin15Durum_ = false;
@@ -433,7 +433,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                 pin9_ = ioio_.openDigitalOutput(9, false);
                 pin10_ = ioio_.openDigitalOutput(10, false);
                 pin11_ = ioio_.openDigitalOutput(11, false);
-                pin12_ = ioio_.openDigitalOutput(12, false);
+                pin12_ = ioio_.openDigitalOutput(12, true);   // Pin 12 başlangıçta AÇIK
                 pin13_ = ioio_.openDigitalOutput(13, false);
                 pin39_ = ioio_.openDigitalOutput(39, false);
                 pin15_ = ioio_.openDigitalOutput(15, false);
@@ -552,6 +552,9 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                         pin13Button_.setEnabled(true);
                         pin39Button_.setEnabled(true);
                         pin15Button_.setEnabled(true);
+                        
+                        // Pin 12 butonunu AÇIK olarak göster
+                        pin12Button_.setText("Pin 12\nAÇIK");
                         
                         pin9Button_.setOnClickListener(new OnClickListener() {
                             @Override
