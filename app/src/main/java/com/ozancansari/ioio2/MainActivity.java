@@ -36,6 +36,8 @@ import ioio.lib.util.android.AbstractIOIOActivity;
  */
 public class MainActivity extends AbstractIOIOActivity {
 
+    private static final String TAG = "MainActivity";
+
     // UI elemanları
     private TextView tvSicaklik, tvNem, tvBasinc, tvDate, tvTime, tvTimer;
     private TextView tvTolerans, tvTolerans1, tvTolerans2;
@@ -117,6 +119,9 @@ public class MainActivity extends AbstractIOIOActivity {
     private long lastReadAttempt = 0;
     private boolean isReadingADC = false; // ADC okuma kilidi
 
+    // BME280 değişkenleri
+    private TextView bme280Text;
+    
     // Bluetooth durumu receiver'ı - Minimal müdahale
     private BroadcastReceiver bluetoothReceiver = new BroadcastReceiver() {
         @Override
@@ -146,6 +151,9 @@ public class MainActivity extends AbstractIOIOActivity {
         setContentView(R.layout.activity_main);
         
         preferences = getSharedPreferences("IOIO_PREFS", MODE_PRIVATE);
+        
+        // BME280 UI elemanını bul
+        bme280Text = findViewById(R.id.bme280Text);
         
         initializeBluetooth();
         initializeViews();
@@ -690,6 +698,8 @@ public class MainActivity extends AbstractIOIOActivity {
         private static final long ADC_READ_DELAY = 100; // 100ms
         private static final int MAX_ERRORS = 3;
         private int errorCount = 0;
+        private TwiMaster twi_;
+        private boolean bme280Ok = false;
         
         @Override
         protected void setup() throws ConnectionLostException {
@@ -702,92 +712,15 @@ public class MainActivity extends AbstractIOIOActivity {
                     adcPin = ioio_.openAnalogInput(31);
                     adcHazir = true;
                     
-                    // Manuel I2C GPIO pinleri başlat (Android 4 crash-safe)
-                    try {
-                        Log.i("MainActivity", "BME280 için manuel I2C GPIO başlatılıyor...");
-                        
-                        // GPIO pinleri aç - I2C modu için
-                        // Doğru pin mapping: SDA=4, SCL=5, CSB=6
-                        sclPin = ioio_.openDigitalOutput(5, false); // SCL pin 5 (doğru)
-                        csbPin = ioio_.openDigitalOutput(6, false); // CSB pin 6 - Başlangıçta LOW (SPI reset için)
-                        sdaOutPin = ioio_.openDigitalOutput(4, false); // SDA pin 4 (başlangıçta output)
-                        sdaInPin = null; // Henüz açılmadı
-                        sdaIsOutput = true;
-                        
-                        Log.i("MainActivity", "Pin Mapping DOĞRU: SDA=4, SCL=5, CSB=6");
-                        
-                        Thread.sleep(200);
-                        
-                        Log.i("MainActivity", "GPIO pinleri hazır, BME280 test ediliyor...");
-                        
-                        // BME280 sensörünü manuel I2C ile başlat - dinamik pin switching helper
-                        bme280Sensor = new BME280Sensor(this); // MainActivity.MainIOIOThread referansı ver
-                        
-                        // Başlatma işlemi
-                        boolean bme280Ok = false;
-                        try {
-                            bme280Ok = bme280Sensor.initialize();
-                        } catch (Exception initEx) {
-                            Log.e("MainActivity", "BME280 başlatma iç hatası", initEx);
-                            bme280Ok = false;
-                        }
-                        
-                        if (bme280Ok) {
-                            bme280Hazir = true;
-                            sensorDataAvailable = true;
-                            Log.i("MainActivity", "BME280 başarıyla başlatıldı - manuel I2C aktif");
-                        } else {
-                            throw new Exception("BME280 manuel I2C ile başlatılamadı");
-                        }
-                        
-                    } catch (Exception e) {
-                        Log.e("MainActivity", "BME280 manuel I2C hatası", e);
-                        
-                        // GPIO pinleri temizle
-                        if (sclPin != null) {
-                            try {
-                                sclPin.close();
-                            } catch (Exception ex) {
-                                Log.e("MainActivity", "SCL pin kapatma hatası", ex);
-                            }
-                            sclPin = null;
-                        }
-                        if (csbPin != null) {
-                            try {
-                                csbPin.close();
-                            } catch (Exception ex) {
-                                Log.e("MainActivity", "CSB pin kapatma hatası", ex);
-                            }
-                            csbPin = null;
-                        }
-                        if (sdaOutPin != null) {
-                            try {
-                                sdaOutPin.close();
-                            } catch (Exception ex) {
-                                Log.e("MainActivity", "SDA out pin kapatma hatası", ex);
-                            }
-                            sdaOutPin = null;
-                        }
-                        if (sdaInPin != null) {
-                            try {
-                                sdaInPin.close();
-                            } catch (Exception ex) {
-                                Log.e("MainActivity", "SDA in pin kapatma hatası", ex);
-                            }
-                            sdaInPin = null;
-                        }
-                        
-                        bme280Sensor = null;
-                        bme280Hazir = false;
-                        sensorDataAvailable = false;
-                        
-                        // Gerçek sensör çalışmadığı için hatayı bildir
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                updateConnectionStatus("BME280 GPIO hatası - kablolar kontrol edin", false);
-                            }
-                        });
+                    // BME280 sensörünü TWI1 pinleri ile başlat (Pin 6 ve 7)
+                    twi_ = ioio_.openTwiMaster(1, TwiMaster.Rate.RATE_100KHz, false);
+                    bme280Sensor = new BME280Sensor(twi_);
+                    bme280Ok = bme280Sensor.initialize();
+                    
+                    if (bme280Ok) {
+                        Log.d(TAG, "BME280 başarıyla başlatıldı (TWI1: Pin 6=SCL, Pin 7=SDA)");
+                    } else {
+                        Log.e(TAG, "BME280 başlatılamadı!");
                     }
                     
                     runOnUiThread(new Runnable() {
@@ -795,7 +728,7 @@ public class MainActivity extends AbstractIOIOActivity {
                         public void run() {
                             String status = "IOIO hazır - ADC aktif";
                             if (bme280Hazir) {
-                                status += ", BME280 manuel I2C";
+                                status += ", BME280 TWI1";
                             } else {
                                 status += ", BME280 HATA";
                             }
@@ -817,55 +750,8 @@ public class MainActivity extends AbstractIOIOActivity {
                     hasValidData = true;
                 }
             } catch (Exception e) {
-                Log.e("MainActivity", "IOIO setup hatası", e);
-                adcHazir = false;
-                bme280Hazir = false;
-                sensorDataAvailable = false;
-                
-                if (adcPin != null) {
-                    try {
-                        adcPin.close();
-                    } catch (Exception ex) {
-                        // Ignore
-                    }
-                    adcPin = null;
-                }
-                
-                // GPIO pinleri temizle
-                if (sclPin != null) {
-                    try {
-                        sclPin.close();
-                    } catch (Exception ex) {
-                        // Ignore
-                    }
-                    sclPin = null;
-                }
-                if (csbPin != null) {
-                    try {
-                        csbPin.close();
-                    } catch (Exception ex) {
-                        // Ignore
-                    }
-                    csbPin = null;
-                }
-                if (sdaOutPin != null) {
-                    try {
-                        sdaOutPin.close();
-                    } catch (Exception ex) {
-                        // Ignore
-                    }
-                    sdaOutPin = null;
-                }
-                if (sdaInPin != null) {
-                    try {
-                        sdaInPin.close();
-                    } catch (Exception ex) {
-                        // Ignore
-                    }
-                    sdaInPin = null;
-                }
-                
-                throw new ConnectionLostException(e);
+                Log.e(TAG, "BME280 başlatma hatası: " + e.getMessage(), e);
+                bme280Ok = false;
             }
         }
         
@@ -967,36 +853,26 @@ public class MainActivity extends AbstractIOIOActivity {
                     }
                 }
                 
-                // BME280 gerçek sensör verilerini oku (manuel I2C)
+                // BME280 verilerini oku
                 BME280Sensor.SensorData sensorData = null;
-                if (bme280Sensor != null && bme280Hazir && sclPin != null) {
+                if (bme280Ok) {
                     try {
-                        Log.d("MainActivity", "BME280 manuel I2C veri okunuyor...");
                         sensorData = bme280Sensor.readSensorData();
-                        
-                        if (sensorData != null && !sensorData.isSimulated) {
-                            sensorDataAvailable = true;
-                            Log.d("MainActivity", String.format("BME280 manuel I2C veri: %.1f°C, %.1f%%, %.1f hPa", 
-                                sensorData.temperature, sensorData.humidity, sensorData.pressure));
-                        } else {
-                            Log.w("MainActivity", "BME280 veri okuma başarısız");
-                            sensorDataAvailable = false;
-                        }
-                        
                     } catch (Exception e) {
-                        Log.e("MainActivity", "BME280 manuel I2C okuma hatası", e);
-                        sensorDataAvailable = false;
-                        
-                        // Kritik GPIO hatası varsa sensörü sıfırla
-                        if (e.getMessage() != null && e.getMessage().contains("Connection")) {
-                            bme280Hazir = false;
-                            Log.w("MainActivity", "BME280 GPIO bağlantısı kesildi - yeniden başlatılacak");
-                        }
+                        Log.e(TAG, "BME280 veri okuma hatası", e);
+                        bme280Ok = false;
                     }
-                } else {
-                    // BME280 hazır değil
-                    sensorDataAvailable = false;
-                    Log.w("MainActivity", "BME280 GPIO hazır değil - sensör bağlantısını kontrol edin");
+                }
+                
+                // UI güncelleme
+                if (sensorData != null) {
+                    final BME280Sensor.SensorData finalSensorData = sensorData;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateBME280UI(finalSensorData);
+                        }
+                    });
                 }
                 
                 // Başarılı okuma
@@ -1042,15 +918,15 @@ public class MainActivity extends AbstractIOIOActivity {
                             } else {
                                 // Sensör verisi yok - uyarı göster
                                 if (tvSicaklik != null) {
-                                    tvSicaklik.setText("Sıcaklık: Manuel I2C hatası");
+                                    tvSicaklik.setText("Sıcaklık: TWI1 hatası");
                                     tvSicaklik.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
                                 }
                                 if (tvNem != null) {
-                                    tvNem.setText("Nem: Manuel I2C hatası");
+                                    tvNem.setText("Nem: TWI1 hatası");
                                     tvNem.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
                                 }
                                 if (tvBasinc != null) {
-                                    tvBasinc.setText("Basınç: Manuel I2C hatası");
+                                    tvBasinc.setText("Basınç: TWI1 hatası");
                                     tvBasinc.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
                                 }
                             }
@@ -1062,7 +938,7 @@ public class MainActivity extends AbstractIOIOActivity {
                 });
                 
                 // Android 4 için uygun bekleme
-                Thread.sleep(4000); // 4 saniye - manuel I2C için yeterli
+                Thread.sleep(4000); // 4 saniye - TWI1 için yeterli
                 
             } catch (ConnectionLostException e) {
                 Log.e("MainActivity", "Bağlantı kaybedildi", e);
@@ -1173,80 +1049,15 @@ public class MainActivity extends AbstractIOIOActivity {
      * Android 4 uyumlu, basit güvenli güncelleme
      */
     private void updateBME280UI(BME280Sensor.SensorData sensorData) {
-        if (sensorData == null || !sensorDataAvailable) return;
+        String fullMessage = String.format(
+            "Sıcaklık: %.1f°C\nNem: %.1f%%\nBasınç: %.1f hPa",
+            sensorData.temperature,
+            sensorData.humidity,
+            sensorData.pressure
+        );
         
-        // Android 4 için basit UI güncelleme, thread kontrolü yok
-        try {
-            // Sıcaklık güncellemesi
-        if (tvSicaklik != null) {
-            tvSicaklik.setText(String.format("Sıcaklık: %.1f°C%s", 
-                sensorData.temperature, 
-                sensorData.isSimulated ? " (Sim)" : ""));
-            
-            // Renk kodlaması
-            if (sensorData.temperature < 18.0f) {
-                tvSicaklik.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
-            } else if (sensorData.temperature > 35.0f) {
-                tvSicaklik.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-            } else {
-                tvSicaklik.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-            }
-        }
-        
-        // Nem güncellemesi
-        if (tvNem != null) {
-            tvNem.setText(String.format("Nem: %.1f%%%s", 
-                sensorData.humidity,
-                sensorData.isSimulated ? " (Sim)" : ""));
-            
-            // Renk kodlaması
-            if (sensorData.humidity < 30.0f) {
-                tvNem.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
-            } else if (sensorData.humidity > 80.0f) {
-                tvNem.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
-            } else {
-                tvNem.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-            }
-        }
-        
-        // Basınç güncellemesi  
-        if (tvBasinc != null) {
-            tvBasinc.setText(String.format("Basınç: %.1f hPa%s", 
-                sensorData.pressure,
-                sensorData.isSimulated ? " (Sim)" : ""));
-            
-            // Renk kodlaması (normal deniz seviyesi basıncı: 1013.25 hPa)
-            if (sensorData.pressure < 980.0f) {
-                tvBasinc.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
-            } else if (sensorData.pressure > 1050.0f) {
-                tvBasinc.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-            } else {
-                tvBasinc.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-            }
-        }
-        
-        // Min/Max değerleri güncelle (basitleştirilmiş)
-        if (tvMax != null) {
-            tvMax.setText(String.format("%.0f°C", sensorData.temperature + 2));
-        }
-        if (tvMin != null) {
-            tvMin.setText(String.format("%.0f°C", sensorData.temperature - 2));
-        }
-        if (tvNemMax != null) {
-            tvNemMax.setText(String.format("%.0f%%", sensorData.humidity + 5));
-        }
-        if (tvNemMin != null) {
-            tvNemMin.setText(String.format("%.0f%%", sensorData.humidity - 5));
-        }
-        if (tvBasincMax != null) {
-            tvBasincMax.setText(String.format("%.0f hPa", sensorData.pressure + 10));
-        }
-        if (tvBasincMin != null) {
-            tvBasincMin.setText(String.format("%.0f hPa", sensorData.pressure - 10));
-        }
-        } catch (Exception e) {
-            // Android 4 UI güncelleme hatası durumunda sessizce geç
-        }
+        fullMessage += bme280Sensor.isSimulating() ? " (Simülasyon)" : " (Gerçek)";
+        bme280Text.setText(fullMessage);
     }
     
     /**

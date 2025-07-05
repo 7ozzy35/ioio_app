@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 import android.view.View;
@@ -29,6 +30,7 @@ import ioio.lib.api.DigitalInput;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.PwmOutput;
 import ioio.lib.api.SpiMaster;
+import ioio.lib.api.TwiMaster;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.android.AbstractIOIOActivity;
 
@@ -56,14 +58,14 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
     private Button pin11Button_;
     private Button pin12Button_;
     private Button pin13Button_;
-    private Button pin16Button_;
+    private Button pin39Button_;
     private Button pin15Button_;
     private boolean pin9Durum_ = false;
     private boolean pin10Durum_ = false;
     private boolean pin11Durum_ = false;
     private boolean pin12Durum_ = false;
     private boolean pin13Durum_ = false;
-    private boolean pin16Durum_ = false;
+    private boolean pin39Durum_ = false;
     private boolean pin15Durum_ = false;
     
     private Button statLedButton_;
@@ -97,6 +99,10 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
     
     // Thread referansı
     private IOIOKontrolThread currentThread_;
+    
+    private TwiMaster twi_;
+    private BME280Sensor bme280_;
+    private boolean twiHazir_ = false;
     
     // Bluetooth durum receiver'ı
     private BroadcastReceiver bluetoothReceiver = new BroadcastReceiver() {
@@ -156,7 +162,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         pin11Button_ = findViewById(R.id.pin11Button);
         pin12Button_ = findViewById(R.id.pin12Button);
         pin13Button_ = findViewById(R.id.pin13Button);
-        pin16Button_ = findViewById(R.id.pin16Button);
+        pin39Button_ = findViewById(R.id.pin16Button);
         pin15Button_ = findViewById(R.id.pin15Button);
         
         // SeekBar listener'ı
@@ -408,7 +414,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
         private DigitalOutput pin11_;
         private DigitalOutput pin12_;
         private DigitalOutput pin13_;
-        private DigitalOutput pin16_;
+        private DigitalOutput pin39_;
         private DigitalOutput pin15_;
         
         private boolean spiHazir_ = false;
@@ -429,17 +435,17 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                 pin11_ = ioio_.openDigitalOutput(11, false);
                 pin12_ = ioio_.openDigitalOutput(12, false);
                 pin13_ = ioio_.openDigitalOutput(13, false);
-                pin16_ = ioio_.openDigitalOutput(16, false);
+                pin39_ = ioio_.openDigitalOutput(39, false);
                 pin15_ = ioio_.openDigitalOutput(15, false);
                 
 
-                // SPI Master'ı başlat (hata olursa sadece uyarı ver)
+                // SPI Master'ı başlat - Pin 37(MISO), 39(MOSI), 38(CLK), 36(SS)
                 try {
                     if (ioio_ != null) {
-                        // Daha yüksek rate ile başlayalım - 31K çok yavaş olabilir
-                        spi_ = ioio_.openSpiMaster(10, 11, 12, new int[]{13}, SpiMaster.Rate.RATE_31K);
+                        // Pin 37: MISO, Pin 36: MOSI, Pin 38: CLK, Pin 35: SS
+                        spi_ = ioio_.openSpiMaster(37, 35, 38, new int[]{36}, SpiMaster.Rate.RATE_31K);
                         spiHazir_ = true;
-                        Thread.sleep(200); // SPI başlatma sonrası daha uzun bekleme
+                        Thread.sleep(200); // SPI başlatma sonrası bekleme
                     }
                 } catch (Exception e) {
                     spiHazir_ = false;
@@ -448,7 +454,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(getApplicationContext(), "SPI başlatılamadı: " + errorMsg, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "SPI başlatılamadı (Pin37,39,38,36): " + errorMsg, Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
@@ -500,6 +506,34 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     });
                 }
                 
+                // TWI (I2C) başlat - 100KHz
+                try {
+                    if (ioio_ != null) {
+                        twi_ = ioio_.openTwiMaster(0, TwiMaster.Rate.RATE_100KHz, false);
+                        bme280_ = new BME280Sensor(twi_);
+                        twiHazir_ = true;
+                        Thread.sleep(100);
+                        
+                        // BME280 bağlantı testi
+                        if (bme280_.isConnected()) {
+                            Log.d("BME280", "BME280 sensörü başarıyla bağlandı!");
+                        } else {
+                            Log.e("BME280", "BME280 sensörü bulunamadı!");
+                        }
+                    }
+                } catch (Exception e) {
+                    twiHazir_ = false;
+                    twi_ = null;
+                    bme280_ = null;
+                    final String errorMsg = e.getMessage();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "TWI başlatılamadı: " + errorMsg, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+                
             // Bağlantı durumunu güncelle ve MainActivity'i bilgilendir
             preferences.edit().putBoolean("IOIO_CONNECTED", true).apply();
             reconnectAttempts = 0; // Başarılı bağlantı sonrası sayacı sıfırla
@@ -516,7 +550,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                         pin11Button_.setEnabled(true);
                         pin12Button_.setEnabled(true);
                         pin13Button_.setEnabled(true);
-                        pin16Button_.setEnabled(true);
+                        pin39Button_.setEnabled(true);
                         pin15Button_.setEnabled(true);
                         
                         pin9Button_.setOnClickListener(new OnClickListener() {
@@ -559,11 +593,11 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                             }
                         });
                         
-                        pin16Button_.setOnClickListener(new OnClickListener() {
+                        pin39Button_.setOnClickListener(new OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                pin16Durum_ = !pin16Durum_;
-                                pin16Button_.setText("Pin 16\n" + (pin16Durum_ ? "AÇIK" : "KAPALI"));
+                                pin39Durum_ = !pin39Durum_;
+                                pin39Button_.setText("Pin 16\n" + (pin39Durum_ ? "AÇIK" : "KAPALI"));
                             }
                         });
                         
@@ -807,7 +841,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
             
             try {
                 final String inputText = spiDataInput_.getText().toString().trim();
-                final String finalText = inputText.isEmpty() ? "0x41" : inputText;
+                final String finalText = inputText.isEmpty() ? "0x11" : inputText;
                 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -838,9 +872,8 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                 
                 Thread.sleep(500); // Kullanıcının görmesi için bekleme
                 
-                // SPI işlemi - Daha uzun veri transferi için
-                byte[] writeData = {dataToSend, dataToSend, dataToSend, dataToSend}; // 4 byte gönder
-                byte[] readData = new byte[4]; // 4 byte oku
+                                // SPI işlemi - Daha uzun veri transferi için
+                byte[] writeData = {dataToSend, dataToSend, dataToSend, dataToSend, dataToSend}; // 5 byte gönder
                 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -849,14 +882,34 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     }
                 });
                 
-                // 10 kez SPI transferi yap (CLK sinyalinin görülmesi için)
-                for (int i = 0; i < 10; i++) {
-                    spi_.writeRead(0, writeData, 4, 4, readData, 4); // Slave 0, 4 byte transfer
+                // SPI transfer sonuçlarını topla
+                StringBuilder transferSonuclari = new StringBuilder();
+                transferSonuclari.append("Transfer tamamlandı!\n");
+                transferSonuclari.append(String.format("Gönderilen: 0x%02X (5 byte x 5 kez)\n\n", dataToSend & 0xFF));
+                transferSonuclari.append("Transfer 1: ");
+                
+                // 5 kez SPI transferi yap (CLK sinyalinin görülmesi için)
+                for (int i = 0; i < 1; i++) {
+                    // Her transfer için ayrı byte array kullan
+                    byte[] readData = new byte[5]; // Her transfer için yeni array
+                    
+                    // Her SPI transfer öncesi Pin 39'u aç-kapat (Enable/Select sinyali)
+                    pin39_.write(true);   // Pin 39'u aç
+                    Thread.sleep(10);     // Kısa bekleme
+                    pin39_.write(false);  // Pin 39'u kapat
+                    Thread.sleep(10);     // Kısa bekleme
+                    
+                    spi_.writeRead(0, writeData, 5, 5, readData, 5); // Slave 0, 5 byte transfer
+                    
+                    // Bu transfer'in sonuçlarını tek satırda ekle
+                    for (int j = 0; j < 5; j++) {
+                        transferSonuclari.append(String.format("0x%02X ", readData[j] & 0xFF));
+                    }
+                    
                     Thread.sleep(100); // Transfer arası bekleme
                 }
                 
-                final String response = String.format("Transfer tamamlandı!\nGönderilen: 0x%02X (4 byte x 10 kez)\nAlınan son: 0x%02X", 
-                    dataToSend & 0xFF, readData[0] & 0xFF);
+                final String response = transferSonuclari.toString();
                 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -898,7 +951,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
          * Butona basıldığında BME280 ID register'ını okur
          */
         private void performSingleI2CTransaction() throws ConnectionLostException, InterruptedException {
-            final int BME280_SLAVE_ADDR = 0xEC;  // BME280 write address
+            final int BME280_SLAVE_ADDR = 0x76;  // BME280 write address
             final int BME280_ID_REG = 0xD0;      // Chip ID register
             final int EXPECTED_ID = 0x60;        // BME280 chip ID
             
@@ -1035,7 +1088,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
             pin11_.write(pin11Durum_);
             pin12_.write(pin12Durum_);
             pin13_.write(pin13Durum_);
-            pin16_.write(pin16Durum_);
+            pin39_.write(pin39Durum_);
             pin15_.write(pin15Durum_);
             
             // PWM durumunu güncelle
@@ -1049,7 +1102,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
             if (spiTestAktif_ && spi_ != null && spiHazir_) {
                 try {
                     // Test verisi: 0xAA, 0x55 (1010 1010, 0101 0101 binary)
-                    byte[] testData = {(byte) 0xAA, (byte) 0x55};
+                    byte[] testData = {(byte) 0x00, (byte) 0x55};
                     byte[] response = new byte[2];
                     spi_.writeRead(testData, testData.length, testData.length, response, response.length);
                     
@@ -1113,24 +1166,26 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
             }
             
             // BME280 I2C test - Tek işlem moduna çevrildi
-            if (i2cTestAktif_ && i2cHazir_) {
+            if (i2cTestAktif_ && twiHazir_ && bme280_ != null) {
                 try {
-                    // BME280 ID register tek okuma
-                    performSingleI2CTransaction();
-                    
-                    // Test tamamlandı - durdur
-                    i2cTestAktif_ = false;
+                    int chipId = bme280_.readChipId();
+                    final String resultText = String.format("BME280 Test:\nChip ID: 0x%02X\nDurum: %s", 
+                        chipId, (chipId == 0x60 ? "BAŞARILI!" : "HATALI ID"));
                     
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            i2cResponseText_.setText(resultText);
                             i2cTestButton_.setText("I²C Test: TAMAMLANDI");
                         }
                     });
                     
+                    // Test tamamlandı
+                    i2cTestAktif_ = false;
+                    
                 } catch (Exception e) {
                     i2cTestAktif_ = false;
-                    final String errorMsg = "BME280 I2C Test Error: " + e.getMessage();
+                    final String errorMsg = "BME280 Test Hatası: " + e.getMessage();
                     
                     runOnUiThread(new Runnable() {
                         @Override
@@ -1228,9 +1283,9 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     pin13_.close();
                     pin13_ = null;
                 }
-                if (pin16_ != null) {
-                    pin16_.close();
-                    pin16_ = null;
+                if (pin39_ != null) {
+                    pin39_.close();
+                    pin39_ = null;
                 }
                 if (pin15_ != null) {
                     pin15_.close();
@@ -1285,7 +1340,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     pin11Button_.setText("Pin 11\nKAPALI");
                     pin12Button_.setText("Pin 12\nKAPALI");
                     pin13Button_.setText("Pin 13\nKAPALI");
-                    pin16Button_.setText("Pin 16\nKAPALI");
+                    pin39Button_.setText("Pin 16\nKAPALI");
                     pin15Button_.setText("Pin 15\nKAPALI");
                     
                     pin9Button_.setEnabled(false);
@@ -1293,7 +1348,7 @@ public class LEDKontrolActivity extends AbstractIOIOActivity {
                     pin11Button_.setEnabled(false);
                     pin12Button_.setEnabled(false);
                     pin13Button_.setEnabled(false);
-                    pin16Button_.setEnabled(false);
+                    pin39Button_.setEnabled(false);
                     pin15Button_.setEnabled(false);
                     
                     spiTestButton_.setText("SPI Test: KAPALI");
