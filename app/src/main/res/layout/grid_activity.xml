@@ -13,33 +13,20 @@
         android:orientation="vertical"
         android:padding="@dimen/medium_margin">
 
-        <!-- SPI Veri Gösterimi -->
-        <TextView
-            android:id="@+id/tvSpiData"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/medium_margin"
-            android:background="@drawable/border"
-            android:padding="@dimen/medium_margin"
-            android:textSize="16sp"
-            android:textColor="#333"
-            android:fontFamily="monospace"
-            android:minHeight="60dp"
-            android:gravity="center_vertical"
-            android:text="SPI Veri Bekleniyor..." />
-
         <!-- LEL Değeri -->
         <TextView
             android:id="@+id/tvLelValue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/medium_margin"
+            android:layout_marginBottom="4dp"
             android:background="@drawable/border"
             android:padding="@dimen/medium_margin"
             android:textSize="16sp"
             android:textColor="#333"
             android:gravity="center"
-            android:text="LEL: --" />
+            android:text="LEL: 0%" />
+
+        <!-- Voltaj Değeri -->
 
         <!-- Grid Layout - Tam ekranı doldur -->
         <LinearLayout
@@ -595,105 +582,61 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Sağ taraf - LEL Değerleri Paneli (15% genişlik) -->
+    <!-- Sağ taraf - Kontrol Paneli -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="15"
-        android:layout_marginStart="@dimen/small_margin"
-        android:background="#FFFFFF"
         android:orientation="vertical"
-        android:padding="@dimen/small_margin">
+        android:padding="@dimen/medium_margin"
+        android:background="#FFFFFF">
 
-        <!-- LEL Değerleri Başlığı -->
+        <!-- Timer Display -->
         <TextView
+            android:id="@+id/tvTimer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/small_margin"
+            android:layout_marginBottom="@dimen/medium_margin"
             android:background="@drawable/border"
+            android:padding="@dimen/medium_margin"
+            android:textSize="18sp"
+            android:textColor="#333"
             android:gravity="center"
-            android:padding="@dimen/small_margin"
-            android:text="LEL\nDeğerleri"
-            android:textColor="#000"
-            android:textSize="@dimen/text_size_small"
+            android:text="00:00" />
+
+        <!-- Geri Sayım Timer -->
+        <TextView
+            android:id="@+id/tvCountdownTimer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/medium_margin"
+            android:background="@drawable/border"
+            android:padding="@dimen/medium_margin"
+            android:textSize="24sp"
+            android:textColor="#FF0000"
+            android:gravity="center"
+            android:text="00:00"
             android:textStyle="bold" />
 
-        <!-- Ana LEL Değeri -->
-        <LinearLayout
+        <!-- Başlat/Durdur Butonu -->
+        <Button
+            android:id="@+id/btnStartStop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/border"
-            android:orientation="vertical"
-            android:padding="@dimen/small_margin">
+            android:layout_marginBottom="@dimen/medium_margin"
+            android:background="@drawable/button_start"
+            android:text="BAŞLAT"
+            android:textColor="#FFFFFF" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="LEL"
-                android:textColor="#000"
-                android:textSize="@dimen/text_size_tiny"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvLelValue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/tiny_margin"
-                android:gravity="center"
-                android:text="0.0%"
-                android:textColor="#1976D2"
-                android:textSize="@dimen/text_size_small"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- SPI Verileri -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/small_margin"
-            android:background="@drawable/border"
-            android:orientation="vertical"
-            android:padding="@dimen/small_margin">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="SPI Data"
-                android:textColor="#000"
-                android:textSize="@dimen/text_size_tiny"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvSpiData"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/tiny_margin"
-                android:gravity="center"
-                android:text="Bekleniyor..."
-                android:textColor="#666"
-                android:textSize="10sp"
-                android:textStyle="normal" />
-        </LinearLayout>
-
-        <!-- Boş alan -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <!-- X Butonu -->
+        <!-- Kapat Butonu -->
         <Button
             android:id="@+id/btnClose"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height"
-            android:layout_marginBottom="@dimen/medium_margin"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/medium_margin"
             android:background="@drawable/button_stop"
-            android:text="X"
-            android:textColor="#FFFFFF"
-            android:textSize="@dimen/text_size_medium"
-            android:textStyle="bold" />
+            android:text="KAPAT"
+            android:textColor="#FFFFFF" />
 
     </LinearLayout>
 

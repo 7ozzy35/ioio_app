@@ -29,7 +29,7 @@
         
         <!-- Ana Aktivite -->
         <activity
-            android:name="com.ozancansari.ioio2.MainActivity"
+            android:name="com.ozancansari.ioio2.GridActivity"
             android:exported="true"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.Ioio2.Main">
@@ -46,9 +46,9 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Ioio2" />
             
-        <!-- Grid Dedektör Aktivitesi -->
+        <!-- Eski Ana Aktivite -->
         <activity
-            android:name="com.ozancansari.ioio2.GridActivity"
+            android:name="com.ozancansari.ioio2.MainActivity"
             android:exported="false"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.Ioio2" />
